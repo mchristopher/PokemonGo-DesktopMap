@@ -175,7 +175,8 @@ function startPython(auth, code, lat, long) {
       '10',
       '--step-limit',
       '7',
-      //'--display-pokestop',
+      //
+      '--display-pokestop',
       '--display-gym',
       '--port',
       port,
