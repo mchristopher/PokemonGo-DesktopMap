@@ -12,6 +12,11 @@
             <div class="col-xs-12">
                 <h1>Login to Pokémon GO</h1>
                 <br>
+                <span id="update-notice" style="display:none;">
+                    <a href="#" onclick="startUpdate()" style="color: #f00">
+                        Update available, click here to install
+                    </a>
+                </span>
                 <br>
                 <h3>Google Accounts</h3>
                 <div class="row">
@@ -34,6 +39,30 @@
                         </form>
                         <br>
                         <span id="ptc_errors" style="color: #f00"></span>
+                    </div>
+                </div>
+
+                <hr>
+                <h4>Config Options</h4>
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                            <div class="row">
+                                <div class="col-xs-10 col-xs-offset-2">
+                                    <div class="col-xs-5">
+                                        <input id="lat" class="form-control"
+                                            type="text" placeholder="Latitude">
+                                    </div>
+                                    <div class="col-xs-5">
+                                        <input id="lon" class="form-control"
+                                            type="text" placeholder="Longitude">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <span>
+                                    Set to override, leave blank to use Geolocation
+                                </span>
+                            </div>
                     </div>
                 </div>
 
@@ -69,8 +98,18 @@
     navigator.geolocation.getCurrentPosition(function success(position) {
         geoLat = position.coords.latitude;
         geoLon = position.coords.longitude;
+        $('#lat').prop('placeholder', geoLat);
+        $('#lon').prop('placeholder', geoLon);
         console.log("Got location: " + geoLat + ", " + geoLon);
     });
+
+    ipcRenderer.on('update-ready', function(evt, url) {
+        $('#update-notice').show();
+    });
+
+    function startUpdate() {
+        ipcRenderer.send('installUpdate');
+    }
 
     function doLogin(ssoUrl, callback) {
       var authWindow = new BrowserWindow(
@@ -276,6 +315,14 @@
     }
 
     function completeLogin(auth, code) {
+        var userLat = $('#lat').val(),
+            userLon = $('#lon').val();
+        if (userLat != '') {
+            geoLat = userLat;
+        }
+        if (userLon != '') {
+            geoLon = userLon;
+        }
         ipcRenderer.send('startPython', auth, code, geoLat, geoLon);
     }
 

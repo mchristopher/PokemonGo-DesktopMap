@@ -4,13 +4,29 @@ const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const path = require('path');
 const os = require('os');
+const autoUpdater = electron.autoUpdater;
+const appVersion = require('./package.json').version;
 //electron.crashReporter.start();
 
 var mainWindow = null;
-var mapWindow = null;
 var procStarted = false;
+var subpy = null;
+var mainAddr;
+
+try {
+  autoUpdater.setFeedURL('https://pokemon-go-updater.mike.ai/feed/channel/all.atom');
+} catch (e) {}
+
+autoUpdater.on('update-downloaded', function(){
+  mainWindow.webContents.send('update-ready');
+});
+
+
 
 app.on('window-all-closed', function() {
+  if (subpy) {
+    subpy.kill('SIGINT');
+  }
   app.quit();
 });
 
@@ -18,13 +34,13 @@ app.on('ready', function() {
 
   mainWindow = new BrowserWindow({width: 800, height: 600});
   mainWindow.loadURL('file://' + __dirname + '/login.html');
-  //mainWindow.openDevTools();
 
   mainWindow.on('closed', function() {
     mainWindow = null;
+    if (subpy) {
+      subpy.kill('SIGINT');
+    }
   });
-
-  logData('hi')
 
 });
 
@@ -33,27 +49,28 @@ function logData(str){
   // if(mainWindow){
   //   mainWindow.webContents.executeJavaScript('console.log(unescape("'+escape(str)+'"))');
   // }
-  // if(mapWindow){
-  //   mapWindow.webContents.executeJavaScript('console.log(unescape("'+escape(str)+'"))');
-  // }
 }
 
 ipcMain.on('startPython', function(event, auth, code, lat, long) {
   if (!procStarted) {
     logData('Starting Python process...');
     startPython(auth, code, lat, long);
-    mainWindow.close();
   }
   procStarted = true;
 });
 
+ipcMain.on('getServer', function(event) {
+  event.sender.send('server-up', mainAddr);
+});
+
+ipcMain.on('installUpdate', function(event) {
+  autoUpdater.quitAndInstall();
+});
+
 function startPython(auth, code, lat, long) {
 
-  mapWindow = new BrowserWindow({width: 800, height: 600, webPreferences: {
-    nodeIntegration: false
-  }});
-  mapWindow.loadURL('file://' + __dirname + '/loading.html');
-  //mapWindow.openDevTools();
+  mainWindow.loadURL('file://' + __dirname + '/main.html');
+  //mainWindow.openDevTools();
 
   // Find open port
   var portfinder = require('portfinder');
@@ -77,7 +94,9 @@ function startPython(auth, code, lat, long) {
       //'--display-pokestop',
       '--display-gym',
       '--port',
-      port
+      port,
+      '--parent_pid',
+      process.pid
     ];
     // console.log(cmdLine);
     logData('Maps path: ' + path.join(__dirname, 'map'));
@@ -88,24 +107,26 @@ function startPython(auth, code, lat, long) {
       pythonCmd = path.join(__dirname, 'pywin', 'python.exe');
     }
 
-    var subpy = require('child_process').spawn(pythonCmd, cmdLine, {
+    subpy = require('child_process').spawn(pythonCmd, cmdLine, {
       cwd: path.join(__dirname, 'map')
     });
 
-    // subpy.stdout.on('data', (data) => {
-    //   logData(`Python: ${data}`);
-    // });
-    // subpy.stderr.on('data', (data) => {
-    //   logData(`Python: ${data}`);
-    // });
+    subpy.stdout.on('data', (data) => {
+      logData(`Python: ${data}`);
+    });
+    subpy.stderr.on('data', (data) => {
+      logData(`Python: ${data}`);
+    });
 
     var rq = require('request-promise');
-    var mainAddr = 'http://localhost:' + port;
+    mainAddr = 'http://localhost:' + port;
 
     var openWindow = function(){
-      mapWindow.loadURL(mainAddr);
-      mapWindow.on('closed', function() {
-        mapWindow = null;
+      mainWindow.webContents.send('server-up', mainAddr);
+      mainWindow.webContents.executeJavaScript(
+        'serverUp("'+mainAddr+'")');
+      mainWindow.on('closed', function() {
+        mainWindow = null;
         subpy.kill('SIGINT');
         procStarted = false;
       });
