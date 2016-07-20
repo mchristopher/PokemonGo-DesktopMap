@@ -1,0 +1,3 @@
+[submodule "map"]
+	path = map
+	url = https://github.com/mchristopher/PokemonGo-Map.git

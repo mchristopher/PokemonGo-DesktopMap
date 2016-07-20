@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Pokémon Go - Login</title>
+            <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="row text-center">
+            <div class="col-xs-12">
+                <h1>Login to Pokémon GO</h1>
+                <br>
+                <br>
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <a href="#" class="btn btn-lg btn-block btn-primary hidden"
+                            onclick="doPokemonLogin()">Pokemon Account</a>
+                    </div>
+                </div>
+                <br>
+                <br>
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <a href="#" class="btn btn-lg btn-block btn-primary"
+                            onclick="doGoogleLogin()">Google Account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+  <script type="text/javascript">
+
+    window.$ = window.jQuery = require('./jquery.js');
+
+    var fs = require('fs');
+    var url = require('url');
+    var request = require('request');
+    var querystring = require('querystring');
+    var electron = require('electron').remote;
+    var BrowserWindow = electron.BrowserWindow;
+    var ipcRenderer = require('electron').ipcRenderer;
+
+    var geoLat = 34.0201797;
+    var geoLon = -118.6926129;
+
+    navigator.geolocation.getCurrentPosition(function success(position) {
+        geoLat = position.coords.latitude;
+        geoLon = position.coords.longitude;
+        console.log("Got location: " + geoLat + ", " + geoLon);
+    });
+
+    function doLogin(ssoUrl, callback) {
+      var authWindow = new BrowserWindow(
+        { width: 800, height: 600, show: false,
+            'node-integration': false, title: 'Login' });
+
+      authWindow.loadURL(ssoUrl);
+      authWindow.show();
+
+      authWindow.webContents.on('will-navigate', function (event, newUrl) {
+        callback(authWindow, newUrl);
+      });
+
+      authWindow.webContents.on('did-navigate', function (event, newUrl) {
+        callback(authWindow, newUrl);
+      });
+
+      authWindow.webContents.on('did-get-redirect-request', function (event, oldUrl, newUrl) {
+        callback(authWindow, newUrl);
+      });
+
+      // Reset the authWindow on close
+      authWindow.on('close', function() {
+          authWindow = null;
+      }, false);
+    }
+
+    function doGoogleLogin() {
+        doLogin("https://accounts.google.com/o/oauth2/auth?" + jQuery.param( {
+            "response_type": "code",
+            "client_id": "848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com",
+            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+            "scope":"openid email https://www.googleapis.com/auth/userinfo.email"
+        } ), handleGoogleCallback);
+    }
+
+    function doPokemonLogin() {
+        doLogin("https://sso.pokemon.com/sso/login?service=https%3A//club.pokemon.com/us/pokemon-trainer-club/caslogin", handlePokemonCallback);
+    }
+
+    function handlePokemonCallback(authWindow, newUrl) {
+
+        var parsedUrl = url.parse(newUrl, true);
+        if (parsedUrl.hostname != 'club.pokemon.com') {
+            return;
+        }
+
+        var raw_code = parsedUrl.query.ticket;
+        var code = (raw_code && raw_code.length > 1) ? raw_code : null;
+
+      if (code) {
+        // Close the browser if code found or error
+        authWindow.destroy();
+      }
+
+      // If there is a code, proceed to get token from oauth
+      if (code) {
+
+        request.post(
+            'https://sso.pokemon.com/sso/oauth2.0/accessToken',
+            { form: {
+                'client_id': 'mobile-app_pokemon-go',
+                'redirect_uri': 'https://www.nianticlabs.com/pokemongo/error',
+                'client_secret': 'w8ScCUXJQc6kXKw8FiOhd8Fixzht18Dq3PEVkUCP5ZPxtgyWsbTvWHFLm2wNY0JR',
+                'grant_type': 'refresh_token',
+                'code': code,
+            } },
+            function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    completeLogin('ptc', querystring.parse(body).access_token);
+                } else {
+                    alert('Oops! Something went wrong and we couldn\'t ' +
+                        'log you in. Please try again. Code 3.');
+                }
+            }
+        );
+
+      } else {
+        alert('Oops! Something went wrong and we couldn\'t ' +
+          'log you in. Please try again. Code 2.');
+      }
+
+    }
+
+    function handleGoogleCallback(authWindow, newUrl) {
+        var parsedUrl = url.parse(newUrl, true);
+
+        if (parsedUrl.hostname != 'accounts.google.com') {
+            return;
+        }
+
+        if (parsedUrl.pathname != '/o/oauth2/approval') {
+            return;
+        }
+
+        var winContents = authWindow.webContents;
+
+        winContents.on('dom-ready', function(){
+
+            winContents.executeJavaScript(
+                'document.getElementById("code").value',
+                true,
+                function(result) {
+                    var code = result;
+                    if (code) {
+                        // Close the browser if code found or error
+                        authWindow.destroy();
+                    }
+
+                    if (code) {
+                        getGoogleToken(code);
+                    } else {    
+                        alert('Oops! Something went wrong and we couldn\'t ' +
+                            'log you in. Please try again. Code 1.');
+                    }
+                });
+
+        });
+
+        function getGoogleToken(code) {
+            request.post(
+                'https://accounts.google.com/o/oauth2/token',
+                { form: {
+                    'client_id': '848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com',
+                    'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
+                    'client_secret': 'NCjF1TLi2CcY6t5mt0ZveuL7',
+                    'grant_type': 'authorization_code',
+                    'code': code,
+                } },
+                function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        completeLogin('google', JSON.parse(body).id_token);
+                    } else {
+                        alert('Oops! Something went wrong and we couldn\'t ' +
+                            'log you in. Please try again. Code 4.');
+                    }
+                }
+            );
+        }
+
+    }
+
+    function completeLogin(auth, code) {
+        ipcRenderer.send('startPython', auth, code, geoLat, geoLon);
+    }
+
+  </script>
+
+</html>
