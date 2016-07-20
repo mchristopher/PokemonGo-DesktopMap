@@ -13,20 +13,30 @@
                 <h1>Login to Pokémon GO</h1>
                 <br>
                 <br>
+                <h3>Google Accounts</h3>
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
-                        <a href="#" class="btn btn-lg btn-block btn-primary hidden"
-                            onclick="doPokemonLogin()">Pokemon Account</a>
+                        <button class="btn btn-lg btn-block btn-primary login"
+                            onclick="doGoogleLogin()">Login with Google</button>
                     </div>
                 </div>
-                <br>
-                <br>
+                <hr>
+                <h3>Pokémon Trainers Club Accounts</h3>
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
-                        <a href="#" class="btn btn-lg btn-block btn-primary"
-                            onclick="doGoogleLogin()">Google Account</a>
+                        <form id="ptc_form" onsubmit="doPTCLogin()">
+                            <input id="ptc_username" class="form-control" type="text"
+                                placeholder="Username" required>
+                            <input id="ptc_password" class="form-control" type="password"
+                                placeholder="Password" required>
+                            <button class="btn btn-lg btn-block btn-primary login"
+                                onclick="doPTCLogin()">Login with PTC</button>
+                        </form>
+                        <br>
+                        <span id="ptc_errors" style="color: #f00"></span>
                     </div>
                 </div>
+
             </div>
         </div>
     </body>
@@ -42,6 +52,16 @@
     var electron = require('electron').remote;
     var BrowserWindow = electron.BrowserWindow;
     var ipcRenderer = require('electron').ipcRenderer;
+
+    //require('process').env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+    var ptcJar = request.jar();
+    var ptcReq = request.defaults({
+        headers: {'User-Agent': 'niantic'},
+        jar: ptcJar,
+        //proxy: 'http://127.0.0.1:8080',
+        //strictSSL: false
+    });
 
     var geoLat = 34.0201797;
     var geoLon = -118.6926129;
@@ -78,7 +98,12 @@
       }, false);
     }
 
+    function toggleLogin(disabled) {
+        jQuery('.login').prop("disabled", disabled);
+    }
+
     function doGoogleLogin() {
+        toggleLogin(true);
         doLogin("https://accounts.google.com/o/oauth2/auth?" + jQuery.param( {
             "response_type": "code",
             "client_id": "848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com",
@@ -87,24 +112,77 @@
         } ), handleGoogleCallback);
     }
 
-    function doPokemonLogin() {
-        doLogin("https://sso.pokemon.com/sso/login?service=https%3A//club.pokemon.com/us/pokemon-trainer-club/caslogin", handlePokemonCallback);
+    function doPTCLogin() {
+        toggleLogin(true);
+        jQuery('#ptc_errors').html('');
+        var username = jQuery('#ptc_username').val(),
+            password = jQuery('#ptc_password').val();
+
+        // Reset cookie jar
+        ptcJar = request.jar();
+
+        // Get Login session from SSO servers
+        ptcReq.get('https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize',
+        function(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                doPTCLoginStep2(username, password, JSON.parse(body));
+            } else {
+                console.log(error);
+                toggleLogin(false);
+                alert('Oops! Something went wrong and we couldn\'t ' +
+                    'log you in. Please try again. Code 6.');
+            }
+        });
+
+        return false;
     }
 
-    function handlePokemonCallback(authWindow, newUrl) {
+    function doPTCLoginStep2(user, pass, session) {
+        var loginData = {
+            'lt': session.lt,
+            'execution': session.execution,
+            '_eventId': 'submit',
+            'username': user,
+            'password': pass
+        };
+
+        ptcReq.post(
+                'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize',
+                {form: loginData},
+                function (error, response, body) {
+                    if (!error && response.statusCode == 302) {
+                        var rawRedirect = response.headers.location;
+                        handlePokemonCallback(rawRedirect);
+                    } else {
+                        toggleLogin(false);
+                        var errors = null;
+                        try {
+                            errors = JSON.parse(body).errors;
+                            errors = errors.join(' ');
+                        } catch(e) {}
+                        if (errors) {
+                            jQuery('#ptc_errors').html(errors);
+                        } else {
+                            alert('Oops! Something went wrong and we couldn\'t ' +
+                                'log you in. Please try again. Code 7.');
+                        }
+                    }
+                }
+            );
+    }
+
+    function handlePokemonCallback(newUrl) {
 
         var parsedUrl = url.parse(newUrl, true);
-        if (parsedUrl.hostname != 'club.pokemon.com') {
+        if (parsedUrl.hostname != 'sso.pokemon.com') {
+            toggleLogin(false);
+            alert('Oops! Something went wrong and we couldn\'t ' +
+                'log you in. Please try again. Code 8.');
             return;
         }
 
         var raw_code = parsedUrl.query.ticket;
         var code = (raw_code && raw_code.length > 1) ? raw_code : null;
-
-      if (code) {
-        // Close the browser if code found or error
-        authWindow.destroy();
-      }
 
       // If there is a code, proceed to get token from oauth
       if (code) {
@@ -122,6 +200,7 @@
                 if (!error && response.statusCode == 200) {
                     completeLogin('ptc', querystring.parse(body).access_token);
                 } else {
+                    toggleLogin(false);
                     alert('Oops! Something went wrong and we couldn\'t ' +
                         'log you in. Please try again. Code 3.');
                 }
@@ -129,6 +208,7 @@
         );
 
       } else {
+        toggleLogin(false);
         alert('Oops! Something went wrong and we couldn\'t ' +
           'log you in. Please try again. Code 2.');
       }
@@ -162,7 +242,8 @@
 
                     if (code) {
                         getGoogleToken(code);
-                    } else {    
+                    } else {
+                        toggleLogin(false);
                         alert('Oops! Something went wrong and we couldn\'t ' +
                             'log you in. Please try again. Code 1.');
                     }
@@ -184,6 +265,7 @@
                     if (!error && response.statusCode == 200) {
                         completeLogin('google', JSON.parse(body).id_token);
                     } else {
+                        toggleLogin(false);
                         alert('Oops! Something went wrong and we couldn\'t ' +
                             'log you in. Please try again. Code 4.');
                     }
