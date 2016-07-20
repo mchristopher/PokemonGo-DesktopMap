@@ -153,6 +153,10 @@
         $('#update-notice').show();
     });
 
+    ipcRenderer.on('pythonLog', function(evt, data) {
+        console.log(data.msg);
+    });
+
     function startUpdate() {
         ipcRenderer.send('installUpdate');
     }

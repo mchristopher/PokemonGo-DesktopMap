@@ -24,6 +24,10 @@ autoUpdater.on('update-downloaded', function(){
   mainWindow.webContents.send('update-ready');
 });
 
+try {
+  autoUpdater.checkForUpdates();
+} catch (e) {}
+
 // Setup menu bar
 var template = [{
     label: "Application",
@@ -125,7 +129,9 @@ function killProcess(pid) {
   try {
     process.kill(-pid, 'SIGINT');
   } catch (e) {
-    process.kill(pid, 'SIGINT');
+    try {
+      process.kill(pid, 'SIGINT');
+    } catch (e) {}
   }
 }
 
@@ -192,9 +198,11 @@ function startPython(auth, code, lat, long) {
 
     subpy.stdout.on('data', (data) => {
       logData(`Python: ${data}`);
+      mainWindow.webContents.send('pythonLog', {'msg': `${data}`});
     });
     subpy.stderr.on('data', (data) => {
       logData(`Python: ${data}`);
+      mainWindow.webContents.send('pythonLog', {'msg': `${data}`});
     });
 
     var rq = require('request-promise');
