@@ -142,6 +142,17 @@
         geoLon = position.coords.longitude;
         $('#lat').val(geoLat);
         $('#lon').val(geoLon);
+        console.log("Got location: " + geoLat + ", " + geoLon);
+    }, function error(err) {
+        console.log("Error getting location, trying second provider", err);
+        $.getJSON("http://ipinfo.io", function(ipinfo){
+            console.log("Found location ["+ipinfo.loc+"] by ipinfo.io");
+            var latLong = ipinfo.loc.split(",");
+            geoLat = latLong[0];
+            geoLon = latLong[1];
+            $('#lat').val(geoLat);
+            $('#lon').val(geoLon);
+        });
     });
 
     ipcRenderer.on('server-up', function(evt, url) {

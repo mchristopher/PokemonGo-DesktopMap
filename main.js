@@ -135,10 +135,10 @@ function killProcess(pid) {
   }
 }
 
-ipcMain.on('startPython', function(event, auth, code, lat, long) {
+ipcMain.on('startPython', function(event, auth, code, lat, long, opts) {
   if (!procStarted) {
     logData('Starting Python process...');
-    startPython(auth, code, lat, long);
+    startPython(auth, code, lat, long, opts);
   }
   procStarted = true;
 });
@@ -151,7 +151,7 @@ ipcMain.on('installUpdate', function(event) {
   autoUpdater.quitAndInstall();
 });
 
-function startPython(auth, code, lat, long) {
+function startPython(auth, code, lat, long, opts) {
 
   mainWindow.loadURL('file://' + __dirname + '/main.html');
   //mainWindow.openDevTools();
@@ -175,13 +175,36 @@ function startPython(auth, code, lat, long) {
       '10',
       '--step-limit',
       '7',
-      //'--display-pokestop',
-      '--display-gym',
       '--port',
       port,
       '--parent_pid',
       process.pid
     ];
+
+    // Add options
+    if (opts.show_gyms) {
+      cmdLine.push('--display-gym');
+    }
+
+    if (opts.show_pokestops) {
+      cmdLine.push('--display-pokestop');
+      if (opts.only_stops_with_lures) {
+        cmdLine.push('--onlylure');
+      }
+    }
+
+    if (opts.pokemon_ids && opts.pokemon_ids != '') {
+      if (opts.filter_pokemon == 'include' || opts.filter_pokemon == 'exclude') {
+        if (opts.filter_pokemon == 'include') {
+          cmdLine.push('--only');
+        }
+        else {
+          cmdLine.push('--ignore');
+        }
+        cmdLine.push(opts.pokemon_ids);
+      }
+    }
+
     // console.log(cmdLine);
     logData('Maps path: ' + path.join(__dirname, 'map'));
     logData('python ' + cmdLine.join(' '))

@@ -36,6 +36,9 @@
                                 placeholder="Password" required>
                             <button class="btn btn-lg btn-block btn-primary login"
                                 onclick="doPTCLogin()">Login with PTC</button>
+                            <div class="checkbox">
+                                <label><input type="checkbox" id="remember" checked="1"> Remember login info</label>
+                            </div>
                         </form>
                         <br>
                         <span id="ptc_errors" style="color: #f00"></span>
@@ -66,6 +69,68 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="col-xs-4">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="showgym" checked="1">
+                                            Show Gyms
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="showstop" checked="1">
+                                            Show PokéStops
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="onlylure">
+                                            Only PokéStops with Lures
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="col-xs-4">
+                                    <div class="form-group">
+                                      <select class="form-control" id="filter_type">
+                                        <option value="0">No Filter</option>
+                                        <option value="include">Only Show</option>
+                                        <option value="exclude">Do Not Show</option>
+                                      </select>
+                                    </div>
+                                </div>
+                                <div class="col-xs-8">
+                                    <div class="form-group">
+                                        <input id="pokeids" class="form-control"
+                                            type="text" placeholder="Comma-separated Pokemon IDs">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <span>
+                                Fill in a list of Pokemon to filter (ex: <code>1,2,3,4</code>)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </body>
@@ -82,18 +147,66 @@
     var BrowserWindow = electron.BrowserWindow;
     var ipcRenderer = require('electron').ipcRenderer;
 
-    //require('process').env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
     var ptcJar = request.jar();
     var ptcReq = request.defaults({
         headers: {'User-Agent': 'niantic'},
-        jar: ptcJar,
-        //proxy: 'http://127.0.0.1:8080',
-        //strictSSL: false
+        jar: ptcJar
     });
 
-    var geoLat = 34.0201797;
-    var geoLon = -118.6926129;
+    var geoLat = 34.0432108;
+    var geoLon = -118.2675059;
+
+    $( document ).ready(function(){
+        // Get checkbox state
+        [
+            'remember', 'showgym', 'showstop', 'onlylure'
+        ].forEach(function(elem){
+            if (localStorage.getItem(elem)) {
+                document.getElementById(elem).checked = (
+                    localStorage.getItem(elem) == "true");
+            }
+            $('#' + elem).change(function() {
+                localStorage.setItem(elem, !!this.checked);
+            });
+        });
+
+        if (checked('remember')) {
+            setupValue('ptc_username', $('#ptc_username'));
+            setupValue('ptc_password', $('#ptc_password'));
+        }
+
+        setupValueAndSetter('filter_type', $('#filter_type'));
+        setupValueAndSetter('pokeids', $('#pokeids'));
+
+        setupValue('last_lat', $('#lat'));
+        setupValue('last_lon', $('#lon'));
+    });
+
+    function setupValue(key, elem) {
+        if (localStorage.getItem(key)) {
+            elem.val(localStorage.getItem(key));
+        }
+    }
+
+    function setupValueAndSetter(key, elem) {
+        setupValue(key, elem);
+        elem.change(function() {
+            localStorage.setItem(key, elem.val());
+        });
+    }
+
+    function checked(elemId) {
+        return document.getElementById(elemId).checked;
+    }
+
+    function saveState() {
+        if (checked('remember')) {
+            localStorage.setItem("ptc_username", $('#ptc_username').val());
+            localStorage.setItem("ptc_password", $('#ptc_password').val());
+        }
+        localStorage.setItem("last_lat", $('#lat').val());
+        localStorage.setItem("last_lon", $('#lon').val());
+    }
 
     navigator.geolocation.getCurrentPosition(function success(position) {
         geoLat = position.coords.latitude;
@@ -101,6 +214,16 @@
         $('#lat').prop('placeholder', geoLat);
         $('#lon').prop('placeholder', geoLon);
         console.log("Got location: " + geoLat + ", " + geoLon);
+    }, function error(err) {
+        console.log("Error getting location, trying second provider", err);
+        $.getJSON("http://ipinfo.io", function(ipinfo){
+            console.log("Found location ["+ipinfo.loc+"] by ipinfo.io");
+            var latLong = ipinfo.loc.split(",");
+            geoLat = latLong[0];
+            geoLon = latLong[1];
+            $('#lat').prop('placeholder', geoLat);
+            $('#lon').prop('placeholder', geoLon);
+        });
     });
 
     ipcRenderer.on('update-ready', function(evt, url) {
@@ -138,10 +261,24 @@
     }
 
     function toggleLogin(disabled) {
+        saveState();
         jQuery('.login').prop("disabled", disabled);
     }
 
+    function checkParams() {
+        if ($('#pokeids').val() != '') {
+            if (!$('#pokeids').val().match(/^[0-9,]+$/)) {
+                alert('Invalid Pokemon IDs. Only numbers and commas allowed.');
+                return false;
+            }
+        }
+        return true;
+    }
+
     function doGoogleLogin() {
+        if (!checkParams()){
+            return;
+        }
         toggleLogin(true);
         doLogin("https://accounts.google.com/o/oauth2/auth?" + jQuery.param( {
             "response_type": "code",
@@ -152,6 +289,9 @@
     }
 
     function doPTCLogin() {
+        if (!checkParams()){
+            return;
+        }
         toggleLogin(true);
         jQuery('#ptc_errors').html('');
         var username = jQuery('#ptc_username').val(),
@@ -323,7 +463,13 @@
         if (userLon != '') {
             geoLon = userLon;
         }
-        ipcRenderer.send('startPython', auth, code, geoLat, geoLon);
+        ipcRenderer.send('startPython', auth, code, geoLat, geoLon, {
+            show_gyms: checked('showgym'),
+            show_pokestops: checked('showstop'),
+            only_stops_with_lures: checked('onlylure'),
+            filter_pokemon: $('#filter_type').val(),
+            pokemon_ids: $('#pokeids').val()
+        });
     }
 
   </script>
