@@ -191,8 +191,6 @@ function startPython(auth, code, lat, long, opts) {
       './example.py',
       '--auth_service',
       auth,
-      '--token',
-      code,
       '--location=' +
         parseFloat(lat).toFixed(7) + ',' + parseFloat(long).toFixed(7),
       '--auto_refresh',
@@ -202,6 +200,14 @@ function startPython(auth, code, lat, long, opts) {
       '--parent_pid',
       process.pid
     ];
+
+    if (auth == 'ptc' && opts.username && opts.password) {
+      cmdLine.push('--username');
+      cmdLine.push(opts.username);
+    } else {
+      cmdLine.push('--token');
+      cmdLine.push(code);
+    }
 
     // Add options
     if (opts.show_gyms) {
@@ -256,6 +262,15 @@ function startPython(auth, code, lat, long, opts) {
       logData(`Python: ${data}`);
       mainWindow.webContents.send('pythonLog', {'msg': `${data}`});
     });
+
+    // Pass password into new process
+    if (auth == 'ptc' && opts.password) {
+      setTimeout(function() {
+        console.log("Logging in to PTC");
+        subpy.stdin.write(opts.password);
+        subpy.stdin.write("\n");
+      }, 1500);
+    }
 
     var rq = require('request-promise');
     mainAddr = 'http://localhost:' + port;

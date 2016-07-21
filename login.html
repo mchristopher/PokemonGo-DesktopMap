@@ -385,46 +385,8 @@
 
     function handlePokemonCallback(newUrl) {
 
-        var parsedUrl = url.parse(newUrl, true);
-        if (parsedUrl.hostname != 'sso.pokemon.com') {
-            toggleLogin(false);
-            alert('Oops! Something went wrong and we couldn\'t ' +
-                'log you in. Please try again. Code 8.');
-            return;
-        }
-
-        var raw_code = parsedUrl.query.ticket;
-        var code = (raw_code && raw_code.length > 1) ? raw_code : null;
-
-      // If there is a code, proceed to get token from oauth
-      if (code) {
-
-        request.post(
-            'https://sso.pokemon.com/sso/oauth2.0/accessToken',
-            { form: {
-                'client_id': 'mobile-app_pokemon-go',
-                'redirect_uri': 'https://www.nianticlabs.com/pokemongo/error',
-                'client_secret': 'w8ScCUXJQc6kXKw8FiOhd8Fixzht18Dq3PEVkUCP5ZPxtgyWsbTvWHFLm2wNY0JR',
-                'grant_type': 'refresh_token',
-                'code': code,
-            } },
-            function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    console.log(querystring.parse(body));
-                    completeLogin('ptc', querystring.parse(body).access_token);
-                } else {
-                    toggleLogin(false);
-                    alert('Oops! Something went wrong and we couldn\'t ' +
-                        'log you in. Please try again. Code 3.');
-                }
-            }
-        );
-
-      } else {
-        toggleLogin(false);
-        alert('Oops! Something went wrong and we couldn\'t ' +
-          'log you in. Please try again. Code 2.');
-      }
+      // Login by passing in password to prevent timeouts
+      completeLogin('ptc', '');
 
     }
 
@@ -503,7 +465,9 @@
             only_stops_with_lures: checked('onlylure'),
             filter_pokemon: $('#filter_type').val(),
             pokemon_ids: $('#pokeids').val(),
-            radius: $('#radius').val()
+            radius: $('#radius').val(),
+            username: $('#ptc_username').val(),
+            password: $('#ptc_password').val()
         });
     }
 
