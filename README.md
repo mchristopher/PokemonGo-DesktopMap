@@ -22,14 +22,9 @@ Development is currently done on OS X and tested on Windows 10. To get started, 
     pip install virtualenv
     npm install
 
-You will also need to install the Python dependencies (assuming map is the PokemonGo-Map repo):
+To run the project, run:
 
-    cd map
-    pip install -r requirements.txt
-
-To run the project, `cd` into this directory and run:
-
-    electron .
+    npm start
 
 
 Contributing
