@@ -27,6 +27,16 @@
                 #control {
                     padding-top: 10px;
                 }
+                #not-sharing {
+                    color: #f00;
+                    display: none;
+                }
+                #sharing {
+                    color: #093;
+                }
+                .sharing-on {
+                    display: none;
+                }
             </style>
     </head>
     <body>
@@ -58,6 +68,10 @@
                                             class="btn btn-success">Set</button>
                                     </div>
                                 </div>
+                                <div class="col-xs-2">
+                                    <button data-toggle="modal" data-target="#mobile"
+                                        class="btn btn-info">Mobile</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -69,20 +83,59 @@
                     style="display:inline-flex; height: 100%; width: 100%;"></webview>
             </div>
         </div>
+
+        <div class="modal fade" id="mobile" tabindex="-1"
+            role="dialog" aria-labelledby="mobileModalLbl">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="mobileModalLbl">Mobile Access</h4>
+              </div>
+              <div class="modal-body">
+                <div class="text-center">
+                    <h2 id="not-sharing">Not Enabled</h2>
+                    <h2 id="sharing" class="sharing-on">Enabled</h2>
+                    <div id="share-info" class="sharing-on">
+                        <br>
+                        <div id="qrcode" align="center"></div>
+                        <br>
+                        <br>
+                        <strong>URL:</strong> <span id="sharing-url"></span>
+                    </div>
+                    <br>
+                    <br>
+                    <span>To toggle sharing, click the button below.</span>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" id="mobileToggle" onclick="toggleMobile()">Toggle Sharing</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
     </body>
 
   <script type="text/javascript">
-
     window.$ = window.jQuery = require('./jquery.js');
+  </script>
+  <script src="./bootstrap.js"></script>
+  <script src="./qrcode.js"></script>
+
+  <script type="text/javascript">
 
     var electron = require('electron').remote;
     var BrowserWindow = electron.BrowserWindow;
     var ipcRenderer = require('electron').ipcRenderer;
+    var url = require('url');
     var request = require('request');
+    var ngrok = require('./ngrok');
     var serverUrl = null;
     var mapView = document.getElementById('mapview');
 
-    var geoLat, geoLon;
+    var geoLat, geoLon, mobileRunning = false;
 
     navigator.geolocation.getCurrentPosition(function success(position) {
         geoLat = position.coords.latitude;
@@ -100,6 +153,10 @@
         $('#update-notice').show();
     });
 
+    ipcRenderer.on('pythonLog', function(evt, data) {
+        console.log(data.msg);
+    });
+
     function startUpdate() {
         ipcRenderer.send('installUpdate');
     }
@@ -112,6 +169,66 @@
             $('#control').show();
         } catch (e) {
             console.log(e)
+            setTimeout(function() {serverUp(url)}, 500);
+        }
+    }
+
+    function setupMobile() {
+        $('#not-sharing').show();
+        $('.sharing-on').hide();
+        mobileRunning = false;
+        ngrok.once('connect', function(url){
+            ngrokConnect(null, url);
+        });
+        ngrok.once('disconnect', function(){
+            $('#not-sharing').show();
+            $('.sharing-on').hide();
+            mobileRunning = false;
+            $("#mobileToggle").prop("disabled",false);
+        });
+        ngrok.once('error', function(url){
+            $("#mobileToggle").prop("disabled",false);
+            $('#not-sharing').show();
+            $('.sharing-on').hide();
+            mobileRunning = false;
+        });
+        electron.app.on('before-quit', function(){
+            ngrok.kill()
+        });
+    }
+
+    function ngrokConnect(err, url) {
+        if (err){
+            console.log(err);
+        }
+        if (!url) {
+            console.log('No url received');
+            return;
+        }
+        $("#mobileToggle").prop("disabled",false);
+        console.log('Got URL: ' + url);
+        $('#not-sharing').hide();
+        $('.sharing-on').show();
+        $('#sharing-url').html(url);
+        $('#qrcode').html('');
+        new QRCode(
+            document.getElementById("qrcode"), {
+                text: url,
+                width: 128,
+                height: 128
+            });
+        mobileRunning = true;
+    }
+
+    function toggleMobile() {
+        $("#mobileToggle").prop("disabled",true);
+        if (mobileRunning) {
+            ngrok.disconnect();
+        } else {
+            var parsedServerUrl = url.parse(serverUrl);
+            ngrok.connect(parseInt(parsedServerUrl.port), function(err, url){
+                ngrokConnect(err, url);
+            });
         }
     }
 
@@ -125,6 +242,7 @@
         ipcRenderer.send('getServer');
         $('#lat').val(geoLat);
         $('#lon').val(geoLon);
+        setupMobile();
     });
 
   </script>

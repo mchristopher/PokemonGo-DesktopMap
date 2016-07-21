@@ -2,11 +2,14 @@ const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
+const Menu = electron.Menu;
 const path = require('path');
 const os = require('os');
 const autoUpdater = electron.autoUpdater;
-const appVersion = require('./package.json').version;
 //electron.crashReporter.start();
+
+var platform = os.platform() + '_' + os.arch();
+var version = app.getVersion();
 
 var mainWindow = null;
 var procStarted = false;
@@ -14,34 +17,105 @@ var subpy = null;
 var mainAddr;
 
 try {
-  autoUpdater.setFeedURL('https://pokemon-go-updater.mike.ai/feed/channel/all.atom');
+  autoUpdater.setFeedURL('https://pokemon-go-updater.mike.ai/update/'+platform+'/'+version);
 } catch (e) {}
 
 autoUpdater.on('update-downloaded', function(){
   mainWindow.webContents.send('update-ready');
 });
 
+try {
+  autoUpdater.checkForUpdates();
+} catch (e) {}
+
+// Setup menu bar
+var template = [{
+    label: "Application",
+    submenu: [{
+        label: "About Application",
+        selector: "orderFrontStandardAboutPanel:"
+    }, {
+        type: "separator"
+    }, {
+        label: "Quit",
+        accelerator: "Command+Q",
+        click: function() {
+            app.quit();
+        }
+    }]
+}, {
+    label: "Edit",
+    submenu: [{
+        label: "Undo",
+        accelerator: "CmdOrCtrl+Z",
+        selector: "undo:"
+    }, {
+        label: "Redo",
+        accelerator: "Shift+CmdOrCtrl+Z",
+        selector: "redo:"
+    }, {
+        type: "separator"
+    }, {
+        label: "Cut",
+        accelerator: "CmdOrCtrl+X",
+        selector: "cut:"
+    }, {
+        label: "Copy",
+        accelerator: "CmdOrCtrl+C",
+        selector: "copy:"
+    }, {
+        label: "Paste",
+        accelerator: "CmdOrCtrl+V",
+        selector: "paste:"
+    }, {
+        label: "Select All",
+        accelerator: "CmdOrCtrl+A",
+        selector: "selectAll:"
+    }]
+},
+{
+    label: "Tools",
+    submenu: [
+      {
+        label: "Refresh",
+        accelerator: "CmdOrCtrl+R",
+        click(item, focusedWindow) {
+          if (focusedWindow) focusedWindow.reload();
+        }
+      },
+      {
+        label: 'Toggle Developer Tools',
+        accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+        click(item, focusedWindow) {
+          if (focusedWindow)
+            focusedWindow.webContents.toggleDevTools();
+        }
+      }
+    ]
+}
+];
 
 
 app.on('window-all-closed', function() {
-  if (subpy) {
-    subpy.kill('SIGINT');
+  if (subpy && subpy.pid) {
+    killProcess(subpy.pid);
   }
   app.quit();
 });
 
 app.on('ready', function() {
 
-  mainWindow = new BrowserWindow({width: 800, height: 600});
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
+  mainWindow = new BrowserWindow({width: 800, height: 600, minWidth: 700, minHeight: 500});
   mainWindow.loadURL('file://' + __dirname + '/login.html');
 
   mainWindow.on('closed', function() {
     mainWindow = null;
-    if (subpy) {
-      subpy.kill('SIGINT');
+    if (subpy && subpy.pid) {
+      killProcess(subpy.pid);
     }
   });
-
 });
 
 function logData(str){
@@ -49,6 +123,16 @@ function logData(str){
   // if(mainWindow){
   //   mainWindow.webContents.executeJavaScript('console.log(unescape("'+escape(str)+'"))');
   // }
+}
+
+function killProcess(pid) {
+  try {
+    process.kill(-pid, 'SIGINT');
+  } catch (e) {
+    try {
+      process.kill(pid, 'SIGINT');
+    } catch (e) {}
+  }
 }
 
 ipcMain.on('startPython', function(event, auth, code, lat, long) {
@@ -108,14 +192,17 @@ function startPython(auth, code, lat, long) {
     }
 
     subpy = require('child_process').spawn(pythonCmd, cmdLine, {
-      cwd: path.join(__dirname, 'map')
+      cwd: path.join(__dirname, 'map'),
+      detached: true
     });
 
     subpy.stdout.on('data', (data) => {
       logData(`Python: ${data}`);
+      mainWindow.webContents.send('pythonLog', {'msg': `${data}`});
     });
     subpy.stderr.on('data', (data) => {
       logData(`Python: ${data}`);
+      mainWindow.webContents.send('pythonLog', {'msg': `${data}`});
     });
 
     var rq = require('request-promise');
@@ -127,7 +214,9 @@ function startPython(auth, code, lat, long) {
         'serverUp("'+mainAddr+'")');
       mainWindow.on('closed', function() {
         mainWindow = null;
-        subpy.kill('SIGINT');
+        if (subpy && subpy.pid) {
+          killProcess(subpy.pid);
+        }
         procStarted = false;
       });
     };
@@ -147,6 +236,5 @@ function startPython(auth, code, lat, long) {
     startUp();
 
   });
-  
-};
 
+};
