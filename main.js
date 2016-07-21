@@ -169,12 +169,10 @@ function startPython(auth, code, lat, long, opts) {
       auth,
       '--token',
       code,
-      '--location',
-      lat + ',' + long,
+      '--location=' +
+        parseFloat(lat).toFixed(7) + ',' + parseFloat(long).toFixed(7),
       '--auto_refresh',
-      '10',
-      '--step-limit',
-      '7',
+      '5',
       '--port',
       port,
       '--parent_pid',
@@ -203,6 +201,13 @@ function startPython(auth, code, lat, long, opts) {
         }
         cmdLine.push(opts.pokemon_ids);
       }
+    }
+
+    cmdLine.push('--step-limit');
+    if (opts.radius && opts.radius != '') {
+      cmdLine.push(opts.radius);
+    } else {
+      cmdLine.push('7');
     }
 
     // console.log(cmdLine);

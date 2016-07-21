@@ -69,6 +69,8 @@
                     </div>
                 </div>
 
+                <hr>
+
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
                         <div class="row">
@@ -102,6 +104,8 @@
                     </div>
                 </div>
 
+                <hr>
+
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
                         <div class="row">
@@ -130,6 +134,27 @@
                         </div>
                     </div>
                 </div>
+                <hr>
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <div class="row">
+                            <div class="col-xs-6 col-xs-offset-3">
+                                <div class="col-xs-10">
+                                    <input id="radius" class="form-control"
+                                        type="text" placeholder="Radius (default 7)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <span>
+                                Larger numbers increase search area but updates are slower.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <br>
+                <br>
 
             </div>
         </div>
@@ -177,6 +202,7 @@
 
         setupValueAndSetter('filter_type', $('#filter_type'));
         setupValueAndSetter('pokeids', $('#pokeids'));
+        setupValueAndSetter('radius', $('#radius'));
 
         setupValue('last_lat', $('#lat'));
         setupValue('last_lon', $('#lon'));
@@ -269,6 +295,12 @@
         if ($('#pokeids').val() != '') {
             if (!$('#pokeids').val().match(/^[0-9,]+$/)) {
                 alert('Invalid Pokemon IDs. Only numbers and commas allowed.');
+                return false;
+            }
+        }
+        if ($('#radius').val() != '') {
+            if (!$('#radius').val().match(/^[0-9]+$/)) {
+                alert('Invalid Radius. Only numbers allowed.');
                 return false;
             }
         }
@@ -377,6 +409,7 @@
             } },
             function (error, response, body) {
                 if (!error && response.statusCode == 200) {
+                    console.log(querystring.parse(body));
                     completeLogin('ptc', querystring.parse(body).access_token);
                 } else {
                     toggleLogin(false);
@@ -468,7 +501,8 @@
             show_pokestops: checked('showstop'),
             only_stops_with_lures: checked('onlylure'),
             filter_pokemon: $('#filter_type').val(),
-            pokemon_ids: $('#pokeids').val()
+            pokemon_ids: $('#pokeids').val(),
+            radius: $('#radius').val()
         });
     }
 
