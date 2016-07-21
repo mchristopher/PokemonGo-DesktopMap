@@ -6,6 +6,11 @@
   "license": "MIT",
   "version" : "0.0.6",
   "main"    : "main.js",
+  "scripts": {
+    "preinstall": "pip install virtualenv",
+    "postinstall": "cd ./map/ && pip install -r requirements.txt",
+    "start": "electron main.js"
+  },
   "dependencies": {
     "request": "*",
     "request-promise": "*",
