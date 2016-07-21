@@ -25,7 +25,11 @@
                     height: 50px;
                 }
                 #control {
-                    padding-top: 10px;
+                    padding-top: 9px;
+                }
+                #control .row {
+                    padding-left: 10px;
+                    padding-right: 10px;
                 }
                 #not-sharing {
                     color: #f00;
@@ -34,7 +38,7 @@
                 #sharing {
                     color: #093;
                 }
-                .sharing-on {
+                .sharing-on, #api-status-down, #api-status-up {
                     display: none;
                 }
             </style>
@@ -54,23 +58,18 @@
                                         Update available, click here to install
                                     </a>
                                 </span>
-                                <div class="col-xs-6 col-xs-offset-4">
-                                    <div class="col-xs-3">
-                                        <input id="lat" class="form-control"
-                                            type="text" placeholder="Latitude">
-                                    </div>
-                                    <div class="col-xs-3">
-                                        <input id="lon" class="form-control"
-                                            type="text" placeholder="Longitude">
-                                    </div>
-                                    <div class="col-xs-2">
-                                        <button onclick="setLocation()"
-                                            class="btn btn-success">Set</button>
-                                    </div>
+                                <div class="col-xs-4 text-left">
+                                    <button onclick="logout()"
+                                        class="btn btn-xl btn-primary">Logout / Change Settings</button>
                                 </div>
-                                <div class="col-xs-2">
+                                <div class="col-xs-4 text-center">
+                                    <a href="#" class="btn btn-xl btn-default" id="api-status-waiting">Waiting</a>
+                                    <a href="#" class="btn btn-xl btn-danger" id="api-status-down">Outage</a>
+                                    <a href="#" class="btn btn-xl btn-success" id="api-status-up">Operational</a>
+                                </div>
+                                <div class="col-xs-4 text-right">
                                     <button data-toggle="modal" data-target="#mobile"
-                                        class="btn btn-info">Mobile</button>
+                                        class="btn btn-xl btn-info">Mobile</button>
                                 </div>
                             </div>
                         </div>
@@ -166,10 +165,25 @@
 
     ipcRenderer.on('pythonLog', function(evt, data) {
         console.log(data.msg);
+        handleServerStatus(data.msg);
     });
+
+    function handleServerStatus(msg) {
+        if (msg.indexOf('Searching for Pokemon at') >= 0) {
+            $('#api-status-waiting,#api-status-down').hide();
+            $('#api-status-up').show();
+        } else if (msg.indexOf('retrying') >= 0) {
+            $('#api-status-waiting,#api-status-up').hide();
+            $('#api-status-down').show();
+        }
+    }
 
     function startUpdate() {
         ipcRenderer.send('installUpdate');
+    }
+
+    function logout() {
+        ipcRenderer.send('logout');
     }
 
     function serverUp(url) {

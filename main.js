@@ -15,6 +15,7 @@ var mainWindow = null;
 var procStarted = false;
 var subpy = null;
 var mainAddr;
+var restarting = false;
 
 try {
   autoUpdater.setFeedURL('https://pokemon-go-updater.mike.ai/update/'+platform+'/'+version);
@@ -97,6 +98,9 @@ var template = [{
 
 
 app.on('window-all-closed', function() {
+  if (restarting) {
+    return;
+  }
   if (subpy && subpy.pid) {
     killProcess(subpy.pid);
   }
@@ -107,6 +111,12 @@ app.on('ready', function() {
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 
+  setupMainWindow();
+});
+
+function setupMainWindow() {
+  restarting = false;
+
   mainWindow = new BrowserWindow({width: 800, height: 600, minWidth: 700, minHeight: 500});
   mainWindow.loadURL('file://' + __dirname + '/login.html');
 
@@ -116,7 +126,7 @@ app.on('ready', function() {
       killProcess(subpy.pid);
     }
   });
-});
+}
 
 function logData(str){
   console.log(str);
@@ -128,12 +138,26 @@ function logData(str){
 function killProcess(pid) {
   try {
     process.kill(-pid, 'SIGINT');
+    process.kill(-pid, 'SIGTERM');
   } catch (e) {
     try {
-      process.kill(pid, 'SIGINT');
+      process.kill(pid, 'SIGTERM');
     } catch (e) {}
   }
 }
+
+ipcMain.on('logout', function(event, auth, code, lat, long, opts) {
+  restarting = true;
+  if (procStarted) {
+    logData('Killing Python process...');
+    if (subpy && subpy.pid) {
+      killProcess(subpy.pid);
+    }
+  }
+  procStarted = false;
+  mainWindow.close();
+  setupMainWindow();
+});
 
 ipcMain.on('startPython', function(event, auth, code, lat, long, opts) {
   if (!procStarted) {
