@@ -283,6 +283,7 @@
       // Reset the authWindow on close
       authWindow.on('close', function() {
           authWindow = null;
+          toggleLogin(false);
       }, false);
     }
 
