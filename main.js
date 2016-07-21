@@ -19,7 +19,7 @@ var restarting = false;
 
 try {
   autoUpdater.setFeedURL('https://pokemon-go-updater.mike.ai/update/'+platform+'/'+version);
-} catch (e) {}
+} catch (e) {console.log(e)}
 
 autoUpdater.on('update-downloaded', function(){
   mainWindow.webContents.send('update-ready');
