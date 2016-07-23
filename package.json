@@ -19,7 +19,8 @@
     "lock": "^0.1.2",
     "node-uuid": "^1.4.3",
     "xtend": "^4.0.1",
-    "cross-spawn": "*"
+    "cross-spawn": "*",
+    "localtunnel": "*"
   },
   "devDependencies": {
     "electron-packager": "*"
