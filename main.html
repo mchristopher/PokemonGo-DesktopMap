@@ -100,7 +100,7 @@
                         <div id="qrcode" align="center"></div>
                         <br>
                         <br>
-                        <strong>URL:</strong> <span id="sharing-url"></span>
+                        <strong>URL:</strong> <a id="sharing-url"></a>
                     </div>
                     <br>
                     <br>
@@ -239,6 +239,8 @@
         $('#not-sharing').hide();
         $('.sharing-on').show();
         $('#sharing-url').html(url);
+        $('#sharing-url').attr('href', url);
+        $('#sharing-url').attr('target', '_blank');
         $('#qrcode').html('');
         new QRCode(
             document.getElementById("qrcode"), {
