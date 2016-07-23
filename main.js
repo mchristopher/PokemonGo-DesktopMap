@@ -189,6 +189,7 @@ function startPython(auth, code, lat, long, opts) {
     // Run python web server
     var cmdLine = [
       './runserver.py',
+      '--cors',
       '--auth-service',
       auth,
       '--location=' +
