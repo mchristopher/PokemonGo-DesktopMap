@@ -130,9 +130,9 @@ function setupMainWindow() {
 
 function logData(str){
   console.log(str);
-  // if(mainWindow){
-  //   mainWindow.webContents.executeJavaScript('console.log(unescape("'+escape(str)+'"))');
-  // }
+  if (mainWindow){
+    mainWindow.webContents.send('appLog', {'msg': `${str}`});
+  }
 }
 
 function killProcess(pid) {
@@ -188,50 +188,28 @@ function startPython(auth, code, lat, long, opts) {
 
     // Run python web server
     var cmdLine = [
-      './example.py',
-      '--auth_service',
+      './runserver.py',
+      '--auth-service',
       auth,
       '--location=' +
         parseFloat(lat).toFixed(7) + ',' + parseFloat(long).toFixed(7),
-      '--auto_refresh',
-      '5',
       '--port',
-      port,
-      '--parent_pid',
-      process.pid
+      port
     ];
 
-    if (auth == 'ptc' && opts.username && opts.password) {
+    if (auth == 'ptc' && opts.username) {
       cmdLine.push('--username');
       cmdLine.push(opts.username);
-    } else {
+      cmdLine.push('--password');
+      cmdLine.push(opts.password);
+    }
+
+    if (auth == 'google' && code) {
       cmdLine.push('--token');
       cmdLine.push(code);
     }
 
     // Add options
-    if (opts.show_gyms) {
-      cmdLine.push('--display-gym');
-    }
-
-    if (opts.show_pokestops) {
-      cmdLine.push('--display-pokestop');
-      if (opts.only_stops_with_lures) {
-        cmdLine.push('--onlylure');
-      }
-    }
-
-    if (opts.pokemon_ids && opts.pokemon_ids != '') {
-      if (opts.filter_pokemon == 'include' || opts.filter_pokemon == 'exclude') {
-        if (opts.filter_pokemon == 'include') {
-          cmdLine.push('--only');
-        }
-        else {
-          cmdLine.push('--ignore');
-        }
-        cmdLine.push(opts.pokemon_ids);
-      }
-    }
 
     cmdLine.push('--step-limit');
     if (opts.radius && opts.radius != '') {
@@ -242,7 +220,7 @@ function startPython(auth, code, lat, long, opts) {
 
     // console.log(cmdLine);
     logData('Maps path: ' + path.join(__dirname, 'map'));
-    logData('python ' + cmdLine.join(' '))
+    logData('python ' + cmdLine.join(' '));
 
     var pythonCmd = 'python';
     if (os.platform() == 'win32') {
@@ -255,22 +233,13 @@ function startPython(auth, code, lat, long, opts) {
     });
 
     subpy.stdout.on('data', (data) => {
-      logData(`Python: ${data}`);
+      console.log(`Python: ${data}`);
       mainWindow.webContents.send('pythonLog', {'msg': `${data}`});
     });
     subpy.stderr.on('data', (data) => {
-      logData(`Python: ${data}`);
+      console.log(`Python: ${data}`);
       mainWindow.webContents.send('pythonLog', {'msg': `${data}`});
     });
-
-    // Pass password into new process
-    if (auth == 'ptc' && opts.password) {
-      setTimeout(function() {
-        console.log("Logging in to PTC");
-        subpy.stdin.write(opts.password);
-        subpy.stdin.write("\n");
-      }, 1500);
-    }
 
     var rq = require('request-promise');
     mainAddr = 'http://localhost:' + port;

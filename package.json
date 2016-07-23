@@ -4,7 +4,7 @@
   "author": "Mike Christopher",
   "repository": "https://github.com/mchristopher/PokemonGo-DesktopMap",
   "license": "MIT",
-  "version" : "0.0.7",
+  "version" : "0.1.0",
   "main"    : "main.js",
   "scripts": {
     "postinstall": "cd ./map/ && pip install -r requirements.txt",
@@ -18,7 +18,8 @@
     "async": "^0.9.0",
     "lock": "^0.1.2",
     "node-uuid": "^1.4.3",
-    "xtend": "^4.0.1"
+    "xtend": "^4.0.1",
+    "cross-spawn": "*"
   },
   "devDependencies": {
     "electron-packager": "*"

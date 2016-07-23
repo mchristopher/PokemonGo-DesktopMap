@@ -11,6 +11,7 @@
         <div class="row text-center">
             <div class="col-xs-12">
                 <h1>Login to Pokémon GO</h1>
+                <small id="version"></small>
                 <br>
                 <span id="update-notice" style="display:none;">
                     <a href="#" onclick="startUpdate()" style="color: #f00">
@@ -71,7 +72,7 @@
 
                 <hr>
 
-                <div class="row">
+<!--                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
                         <div class="row">
                             <div class="col-xs-12">
@@ -102,9 +103,9 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
-                <hr>
+<!--                 <hr>
 
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
@@ -133,7 +134,7 @@
                             </span>
                         </div>
                     </div>
-                </div>
+                </div> -->
                 <hr>
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
@@ -182,9 +183,11 @@
     var geoLon = -118.2675059;
 
     $( document ).ready(function(){
+        // Show version
+        $('#version').html('Version ' + electron.app.getVersion());
         // Get checkbox state
         [
-            'remember', 'showgym', 'showstop', 'onlylure'
+            'remember'//, 'showgym', 'showstop', 'onlylure'
         ].forEach(function(elem){
             if (localStorage.getItem(elem)) {
                 document.getElementById(elem).checked = (
@@ -200,8 +203,8 @@
             setupValue('ptc_password', $('#ptc_password'));
         }
 
-        setupValueAndSetter('filter_type', $('#filter_type'));
-        setupValueAndSetter('pokeids', $('#pokeids'));
+        // setupValueAndSetter('filter_type', $('#filter_type'));
+        // setupValueAndSetter('pokeids', $('#pokeids'));
         setupValueAndSetter('radius', $('#radius'));
 
         setupValue('last_lat', $('#lat'));
@@ -256,6 +259,15 @@
         $('#update-notice').show();
     });
 
+    ipcRenderer.on('pythonLog', function(evt, data) {
+        console.log(data.msg);
+        handleServerStatus(data.msg);
+    });
+
+    ipcRenderer.on('appLog', function(evt, data) {
+        console.log(data.msg);
+    });
+
     function startUpdate() {
         ipcRenderer.send('installUpdate');
     }
@@ -293,12 +305,12 @@
     }
 
     function checkParams() {
-        if ($('#pokeids').val() != '') {
-            if (!$('#pokeids').val().match(/^[0-9,]+$/)) {
-                alert('Invalid Pokemon IDs. Only numbers and commas allowed.');
-                return false;
-            }
-        }
+        // if ($('#pokeids').val() != '') {
+        //     if (!$('#pokeids').val().match(/^[0-9,]+$/)) {
+        //         alert('Invalid Pokemon IDs. Only numbers and commas allowed.');
+        //         return false;
+        //     }
+        // }
         if ($('#radius').val() != '') {
             if (!$('#radius').val().match(/^[0-9]+$/)) {
                 alert('Invalid Radius. Only numbers allowed.');
@@ -460,11 +472,11 @@
             geoLon = userLon;
         }
         ipcRenderer.send('startPython', auth, code, geoLat, geoLon, {
-            show_gyms: checked('showgym'),
-            show_pokestops: checked('showstop'),
-            only_stops_with_lures: checked('onlylure'),
-            filter_pokemon: $('#filter_type').val(),
-            pokemon_ids: $('#pokeids').val(),
+            // show_gyms: checked('showgym'),
+            // show_pokestops: checked('showstop'),
+            // only_stops_with_lures: checked('onlylure'),
+            // filter_pokemon: $('#filter_type').val(),
+            // pokemon_ids: $('#pokeids').val(),
             radius: $('#radius').val(),
             username: $('#ptc_username').val(),
             password: $('#ptc_password').val()

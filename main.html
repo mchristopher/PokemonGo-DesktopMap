@@ -60,7 +60,7 @@
                                 </span>
                                 <div class="col-xs-4 text-left">
                                     <button onclick="logout()"
-                                        class="btn btn-xl btn-primary">Logout / Change Settings</button>
+                                        class="btn btn-xl btn-primary">Logout</button>
                                 </div>
                                 <div class="col-xs-4 text-center">
                                     <a href="#" class="btn btn-xl btn-default" id="api-status-waiting">Waiting</a>
@@ -168,8 +168,12 @@
         handleServerStatus(data.msg);
     });
 
+    ipcRenderer.on('appLog', function(evt, data) {
+        console.log(data.msg);
+    });
+
     function handleServerStatus(msg) {
-        if (msg.indexOf('Searching for Pokemon at') >= 0) {
+        if (msg.indexOf('Completed ') >= 0) {
             $('#api-status-waiting,#api-status-down').hide();
             $('#api-status-up').show();
         } else if (msg.indexOf('retrying') >= 0) {
