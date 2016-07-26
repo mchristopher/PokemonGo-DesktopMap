@@ -17,6 +17,33 @@ var subpy = null;
 var mainAddr;
 var restarting = false;
 
+// Handle Squirrel startup events
+var handleStartupEvent = function() {
+  if (process.platform !== 'win32') {
+    return false;
+  }
+
+  var squirrelCommand = process.argv[1];
+  switch (squirrelCommand) {
+    case '--squirrel-install':
+    case '--squirrel-updated':
+      app.quit();
+
+      return true;
+    case '--squirrel-uninstall':
+      app.quit();
+
+      return true;
+    case '--squirrel-obsolete':
+      app.quit();
+      return true;
+  }
+};
+
+if (handleStartupEvent()) {
+  return;
+}
+
 try {
   autoUpdater.setFeedURL('https://pokemon-go-updater.mike.ai/update/'+platform+'/'+version);
 } catch (e) {console.log(e)}

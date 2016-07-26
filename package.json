@@ -23,6 +23,10 @@
     "localtunnel": "*"
   },
   "devDependencies": {
-    "electron-packager": "*"
+    "electron-packager": "*",
+    "grunt-electron-installer": "*",
+    "grunt-electron": "*",
+    "load-grunt-tasks": "*",
+    "grunt": "*"
   }
 }
