@@ -258,7 +258,7 @@
     function setLocation() {
         geoLat = $('#lat').val();
         geoLon = $('#lon').val();
-        request.get(serverUrl + '/next_loc?lat=' + geoLat + '&lon=' + geoLon);
+        request.post(serverUrl + '/next_loc?lat=' + geoLat + '&lon=' + geoLon);
     }
 
     $( document ).ready(function(){
