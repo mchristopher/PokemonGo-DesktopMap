@@ -16,6 +16,10 @@ Once you have downloaded the appropriate ZIP file for your platform, extract it 
 Development Environment
 -----------------------
 
+If you are pulling from git, you must first instruct git to fetch the included submodules. Run this after cloning:
+
+    git submodule update --init --recursive
+
 Development is currently done on OS X and tested on Windows 10. To get started, you'll need to install [NodeJS](https://nodejs.org/), Python 2.7, pip, and virtualenv. With Homebrew, I use:
 
     brew install python node
