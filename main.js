@@ -224,6 +224,11 @@ function startPython(auth, code, lat, long, opts) {
       '--port',
       port
     ];
+    
+    if (opts.is_public) {
+      cmdLine.push('--host');
+      cmdLine.push('0.0.0.0')
+    }
 
     if (auth == 'ptc' && opts.username) {
       cmdLine.push('--username');

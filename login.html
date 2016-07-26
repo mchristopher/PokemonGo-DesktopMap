@@ -26,7 +26,9 @@
                             onclick="doGoogleLogin()">Login with Google</button>
                     </div>
                 </div>
+
                 <hr>
+
                 <h3>Pokémon Trainers Club Accounts</h3>
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
@@ -47,32 +49,78 @@
                 </div>
 
                 <hr>
+
                 <h4>Config Options</h4>
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
-                            <div class="row">
-                                <div class="col-xs-10 col-xs-offset-2">
-                                    <div class="col-xs-5">
-                                        <input id="lat" class="form-control"
-                                            type="text" placeholder="Latitude">
-                                    </div>
-                                    <div class="col-xs-5">
-                                        <input id="lon" class="form-control"
-                                            type="text" placeholder="Longitude">
-                                    </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="col-xs-6">
+                                    <input id="lat" class="form-control"
+                                        type="text" placeholder="Latitude">
+                                </div>
+                                <div class="col-xs-6">
+                                    <input id="lon" class="form-control"
+                                        type="text" placeholder="Longitude">
                                 </div>
                             </div>
-                            <div class="row">
-                                <span>
-                                    Set to override, leave blank to use Geolocation
-                                </span>
-                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <span>
+                                Set to override, leave blank to use Geolocation
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 <hr>
 
-<!--                 <div class="row">
+                <h4>Scanning Options</h4>
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <div class="row">
+                            <div class="col-xs-6 col-xs-offset-3">
+                                <div class="col-xs-10 col-xs-offset-1">
+                                    <input id="radius" class="form-control"
+                                        type="number" placeholder="Radius (default 7)">
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <span>
+                                Larger numbers increase search area but updates are slower.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+
+                <h4>Server Options</h4>
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="col-xs-8 col-xs-offset-2">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="is_public" checked="0">
+                                            Make this server publicly accessible.
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+<!--
+                <hr>
+
+                <h4>Display Options</h4>
+                <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
                         <div class="row">
                             <div class="col-xs-12">
@@ -103,10 +151,13 @@
                             </div>
                         </div>
                     </div>
-                </div> -->
+                </div>
+-->
 
-<!--                 <hr>
+<!--
+                <hr>
 
+                <h4>Filter Options</h4>
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
                         <div class="row">
@@ -134,25 +185,8 @@
                             </span>
                         </div>
                     </div>
-                </div> -->
-                <hr>
-                <div class="row">
-                    <div class="col-xs-8 col-xs-offset-2">
-                        <div class="row">
-                            <div class="col-xs-6 col-xs-offset-3">
-                                <div class="col-xs-10">
-                                    <input id="radius" class="form-control"
-                                        type="number" placeholder="Radius (default 7)">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <span>
-                                Larger numbers increase search area but updates are slower.
-                            </span>
-                        </div>
-                    </div>
                 </div>
+-->
 
                 <br>
                 <br>
@@ -187,7 +221,7 @@
         $('#version').html('Version ' + electron.app.getVersion());
         // Get checkbox state
         [
-            'remember'//, 'showgym', 'showstop', 'onlylure'
+            'remember', 'is_public'//, 'showgym', 'showstop', 'onlylure'
         ].forEach(function(elem){
             if (localStorage.getItem(elem)) {
                 document.getElementById(elem).checked = (
@@ -472,6 +506,7 @@
             geoLon = userLon;
         }
         ipcRenderer.send('startPython', auth, code, geoLat, geoLon, {
+            is_public: checked('is_public'),
             // show_gyms: checked('showgym'),
             // show_pokestops: checked('showstop'),
             // only_stops_with_lures: checked('onlylure'),
