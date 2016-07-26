@@ -230,6 +230,11 @@ function startPython(auth, code, lat, long, opts) {
       cmdLine.push('0.0.0.0')
     }
 
+    if (opts.maps_api_key) {
+      cmdLine.push('--google-maps-key');
+      cmdLine.push(opts.maps_api_key);
+    }
+
     if (auth == 'ptc' && opts.username) {
       cmdLine.push('--username');
       cmdLine.push(opts.username);
