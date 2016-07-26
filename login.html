@@ -65,7 +65,23 @@
                                 </div>
                             </div>
                         </div>
-                        <br>
+                            <div class="row">
+								&nbsp;
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-10 col-xs-offset-2">
+                                    <div class="col-xs-8">
+                                        <input id="address" class="form-control"
+                                            type="text" placeholder="Address" onblur="toggleGeolocate()" onkeyup="toggleGeolocate()">
+                                    </div>
+                                    <div class="col-xs-2">
+										<button id="address-locate" type="button" class="btn btn-primary" onclick="doGeolocate()" disabled="disabled">Locate</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+								&nbsp;
+                            </div>
                         <div class="row">
                             <span>
                                 Set to override, leave blank to use Geolocation
@@ -518,6 +534,39 @@
         });
     }
 
+	function doGeolocate() {
+		if($("#address").val().trim().length == 0) {
+			return;
+		}
+		toggleGeolocate(true);
+		$.ajax("https://maps.googleapis.com/maps/api/geocode/json?address=" + $("#address").val().replace(/ /gi,"+"))
+			.done(doGeolocateCallback)
+			.fail(function(xhr, status, err){
+				alert("there was an error looking up this address, please try again");
+				toggleGeolocate(true);
+			});
+	}
+	
+	function doGeolocateCallback(data) {
+		toggleGeolocate(false);
+		if(data.status != "OK" || data.results.length == 0) {
+			alert("there was an error looking up this address, please try again");
+			return;
+		}
+		
+		var loc = data.results[0];
+		console.log("Found location ["+loc.geometry.location.lat+","+loc.geometry.location.lng+"] by google geocode api");
+		
+		$("#lat").val(loc.geometry.location.lat);
+		$("#lon").val(loc.geometry.location.lng);
+	}
+	function toggleGeolocate(disabled) {
+		if(disabled == null) {
+			disabled = $("#address").val().trim().length == 0;
+		}
+        jQuery('#address-locate').prop("disabled", disabled);
+	}
+	
   </script>
 
 </html>
