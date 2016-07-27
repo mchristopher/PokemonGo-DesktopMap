@@ -156,7 +156,21 @@
                         </div>
                     </div>
                 </div>
+                
+		<hr>
 
+                <h3>Database</h3>
+                <div class="row">
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <input id="db_type" class="form-control" name="db_type" type="radio" placeholder="Database Type" value='sqlite'> sqlite
+                        <input id="db_type" class="form-control" name="db_type" type="radio" placeholder="Database Type" value='mysql'> mysql
+                        <input id="db_host" class="form-control" type="text" placeholder="Mysql DB Host">
+                        <input id="db_name" class="form-control" type="text" placeholder="Mysql DB Name">
+                        <input id="db_user" class="form-control" type="text" placeholder="Mysql DB User">
+                        <input id="db_pass" class="form-control" type="password" placeholder="Mysql DB Pass">
+                    </div>
+                </div>
+                
                 <br>
                 <br>
 
@@ -258,6 +272,12 @@
         setupValue('last_lat', $('#lat'));
         setupValue('last_lon', $('#lon'));
         setupValueAndSetter('maps_api_key', $('#maps_api_key'));
+        
+        setupValueAndSetter('db_type', $('#db_type'));
+        setupValueAndSetter('db_host', $('#db_host'));
+        setupValueAndSetter('db_name', $('#db_name'));
+        setupValueAndSetter('db_user', $('#db_user'));
+        setupValueAndSetter('db_pass', $('#db_pass'));
     });
 
     function setupValue(key, elem) {
@@ -528,7 +548,12 @@
             radius: $('#radius').val(),
             username: $('#ptc_username').val(),
             password: $('#ptc_password').val(),
-            maps_api_key: $('#maps_api_key').val()
+            maps_api_key: $('#maps_api_key').val(),
+            db_type: $('#db_type').val(),
+            db_host: $('#db_host').val(),
+            db_name: $('#db_name').val(),
+            db_user: $('#db_user').val(),
+            db_pass: $('#db_pass').val()
         });
     }
 
