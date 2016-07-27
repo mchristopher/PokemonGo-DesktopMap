@@ -19,6 +19,17 @@
                     </a>
                 </span>
                 <br>
+                <div class="row">
+                    <div class="col-xs-3 col-xs-offset-3">
+                        <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=KX3A74AJLWDKC&amp;lc=US&amp;item_name=Pokemon%20GO%20Desktop%20Map%20Donation&amp;item_number=POGO&amp;currency_code=USD&amp;bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted" class="new-window"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="PayPal - The safer, easier way to pay online!"></a>
+                    </div>
+                    <div class="col-xs-3">
+                        <a href="#" data-toggle="modal" data-target="#btc-donate"><img src="./donation_btc.png"></a>
+
+                    </div>
+                </div>
+
+                <br>
                 <h3>Google Accounts</h3>
                 <div class="row">
                     <div class="col-xs-8 col-xs-offset-2">
@@ -57,7 +68,7 @@
                             placeholder="Google Maps API Key" required>
                         <br>
                         <span id="ptc_errors" style="color: #f00">
-                            <a href="#" id="open-guide">Follow this guide to generate your API key</a>
+                            <a href="https://github.com/mchristopher/PokemonGo-DesktopMap/wiki/Google-Maps-API:-a-brief-guide-to-your-own-key" class="new-window">Follow this guide to generate your API key</a>
                         </span>
                     </div>
                 </div>
@@ -151,11 +162,42 @@
 
             </div>
         </div>
+
+        <div class="modal fade" id="btc-donate" tabindex="-1"
+            role="dialog" aria-labelledby="mobileModalLbl">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="mobileModalLbl">Bitcoin Donation</h4>
+              </div>
+              <div class="modal-body">
+                <div class="text-center">
+                    <div>
+                        <h4>Send your donation to the following address:</h4>
+                        <br>
+                        <div id="btc-qrcode" align="center"></div>
+                        <br>
+                        <br>
+                        <strong><a href="bitcoin:12WzBdaHox7mDcj2ScZnSwhXPSvcbwT8FK" class="new-window">12WzBdaHox7mDcj2ScZnSwhXPSvcbwT8FK</a></strong>
+                    </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
     </body>
 
   <script type="text/javascript">
-
     window.$ = window.jQuery = require('./jquery.js');
+  </script>
+  <script src="./bootstrap.js"></script>
+  <script src="./qrcode.js"></script>
+  <script type="text/javascript">
 
     var fs = require('fs');
     var url = require('url');
@@ -178,10 +220,18 @@
     $( document ).ready(function(){
         // Show version
         $('#version').html('Version ' + electron.app.getVersion());
-        $('#open-guide').click(function(){
-            open('https://github.com/mchristopher/PokemonGo-DesktopMap/wiki/Google-Maps-API:-a-brief-guide-to-your-own-key');
+        $('.new-window').click(function(){
+            open($(this).attr("href"));
             return false;
         });
+
+        // Setup bitcoin QR
+        new QRCode(
+            document.getElementById("btc-qrcode"), {
+                text: '12WzBdaHox7mDcj2ScZnSwhXPSvcbwT8FK',
+                width: 128,
+                height: 128
+            });
 
         // Get checkbox state
         [
