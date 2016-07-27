@@ -129,11 +129,11 @@
     var ipcRenderer = require('electron').ipcRenderer;
     var url = require('url');
     var request = require('request');
-    var localtunnel = require('localtunnel')
+    var ngrok = require('./ngrok');
     var serverUrl = null;
     var mapView = document.getElementById('mapview');
 
-    var geoLat, geoLon, mobileTunnel;
+    var geoLat, geoLon, mobileRunning = false;
 
     navigator.geolocation.getCurrentPosition(function success(position) {
         geoLat = position.coords.latitude;
@@ -204,52 +204,60 @@
     function setupMobile() {
         $('#not-sharing').show();
         $('.sharing-on').hide();
-        mobileTunnel = null;
-        electron.app.on('before-quit', function(){
-            if (mobileTunnel){
-                mobileTunnel.close();
-            }
+        mobileRunning = false;
+        ngrok.once('connect', function(url){
+            ngrokConnect(null, url);
         });
+        ngrok.once('disconnect', function(){
+            $('#not-sharing').show();
+            $('.sharing-on').hide();
+            mobileRunning = false;
+            $("#mobileToggle").prop("disabled",false);
+        });
+        ngrok.once('error', function(url){
+            $("#mobileToggle").prop("disabled",false);
+            $('#not-sharing').show();
+            $('.sharing-on').hide();
+            mobileRunning = false;
+        });
+        electron.app.on('before-quit', function(){
+            ngrok.kill()
+        });
+    }
+
+    function ngrokConnect(err, url) {
+        if (err){
+            console.log(err);
+        }
+        if (!url) {
+            console.log('No url received');
+            return;
+        }
+        $("#mobileToggle").prop("disabled",false);
+        console.log('Got URL: ' + url);
+        $('#not-sharing').hide();
+        $('.sharing-on').show();
+        $('#sharing-url').html(url);
+        $('#sharing-url').attr('href', url);
+        $('#sharing-url').attr('target', '_blank');
+        $('#qrcode').html('');
+        new QRCode(
+            document.getElementById("qrcode"), {
+                text: url,
+                width: 128,
+                height: 128
+            });
+        mobileRunning = true;
     }
 
     function toggleMobile() {
         $("#mobileToggle").prop("disabled",true);
-        if (mobileTunnel) {
-            mobileTunnel.close();
+        if (mobileRunning) {
+            ngrok.disconnect();
         } else {
             var parsedServerUrl = url.parse(serverUrl);
-            mobileTunnel = localtunnel(parsedServerUrl.port, {
-                local_host: '127.0.0.1'
-                }, function(err, tunnel) {
-                if (err) {
-                    console.log(err);
-                }
-                if (!tunnel.url) {
-                    console.log('No url received');
-                    alert('Unable to start tunnel');
-                    return;
-                }
-
-                $("#mobileToggle").prop("disabled",false);
-                console.log('Got URL: ' + tunnel.url);
-                $('#not-sharing').hide();
-                $('.sharing-on').show();
-                $('#sharing-url').html(tunnel.url);
-                $('#sharing-url').attr('href', tunnel.url);
-                $('#sharing-url').attr('target', '_blank');
-                $('#qrcode').html('');
-                new QRCode(
-                    document.getElementById("qrcode"), {
-                        text: tunnel.url,
-                        width: 128,
-                        height: 128
-                    });
-            });
-            mobileTunnel.on('close', function() {
-                $('#not-sharing').show();
-                $('.sharing-on').hide();
-                mobileTunnel = null;
-                $("#mobileToggle").prop("disabled",false);
+            ngrok.connect(parseInt(parsedServerUrl.port), function(err, url){
+                ngrokConnect(err, url);
             });
         }
     }
