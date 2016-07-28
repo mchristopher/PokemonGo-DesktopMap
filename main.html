@@ -154,7 +154,8 @@
     });
 
     ipcRenderer.on('server-up', function(evt, url) {
-        console.log('server up');
+        console.log('server up: ' + url);
+        serverUrl = url;
         serverUp(url);
     });
 
@@ -172,10 +173,11 @@
     });
 
     function handleServerStatus(msg) {
-        if (msg.indexOf('Completed ') >= 0) {
+        if (msg.indexOf('Upserted ') >= 0) {
             $('#api-status-waiting,#api-status-down').hide();
             $('#api-status-up').show();
-        } else if (msg.indexOf('server seems to be down') >= 0) {
+        } else if (msg.indexOf('server seems to be down') >= 0 ||
+            msg.indexOf('heavy load') >= 0) {
             $('#api-status-waiting,#api-status-up').hide();
             $('#api-status-down').show();
         }
@@ -190,13 +192,11 @@
     }
 
     function serverUp(url) {
-        serverUrl = url;
         try {
             mapView.loadURL(serverUrl);
             $('#loading').hide();
             $('#control').show();
         } catch (e) {
-            console.log(e)
             setTimeout(function() {serverUp(url)}, 500);
         }
     }
@@ -233,8 +233,8 @@
             console.log('No url received');
             return;
         }
+        console.log(url);
         $("#mobileToggle").prop("disabled",false);
-        console.log('Got URL: ' + url);
         $('#not-sharing').hide();
         $('.sharing-on').show();
         $('#sharing-url').html(url);
@@ -251,6 +251,13 @@
     }
 
     function toggleMobile() {
+        if(serverUrl == null) {
+            ipcRenderer.send('getServer');
+            setTimeout(function() {
+                console.log('Attempting to get server address...');
+                toggleMobile();
+            }, 500);
+        }
         $("#mobileToggle").prop("disabled",true);
         if (mobileRunning) {
             ngrok.disconnect();
@@ -260,12 +267,6 @@
                 ngrokConnect(err, url);
             });
         }
-    }
-
-    function setLocation() {
-        geoLat = $('#lat').val();
-        geoLon = $('#lon').val();
-        request.get(serverUrl + '/next_loc?lat=' + geoLat + '&lon=' + geoLon);
     }
 
     $( document ).ready(function(){

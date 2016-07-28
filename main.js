@@ -208,7 +208,12 @@ function startPython(auth, code, lat, long, opts) {
     
     if (opts.is_public) {
       cmdLine.push('--host');
-      cmdLine.push('0.0.0.0')
+      cmdLine.push('0.0.0.0');
+    }
+
+    if (opts.fast_scan) {
+      cmdLine.push('--num-threads');
+      cmdLine.push('5');
     }
 
     if (opts.maps_api_key) {
@@ -261,12 +266,10 @@ function startPython(auth, code, lat, long, opts) {
     });
 
     var rq = require('request-promise');
-    var pyAddr = 'http://127.0.0.1:' + py_port;
+    var pyAddr = 'http://localhost:' + py_port;
 
     var openWindow = function(){
       mainWindow.webContents.send('server-up', mainAddr);
-      mainWindow.webContents.executeJavaScript(
-        'serverUp("'+mainAddr+'")');
       mainWindow.on('closed', function() {
         mainWindow = null;
         if (subpy && subpy.pid) {
@@ -280,7 +283,7 @@ function startPython(auth, code, lat, long, opts) {
       portfinder.getPort(function(err, express_port) {
         logData('Got open express port: ' + express_port);
 
-        mainAddr = 'http://127.0.0.1:' + express_port;
+        mainAddr = 'http://localhost:' + express_port;
 
         var express_app = express();
 
