@@ -175,7 +175,7 @@
         if (msg.indexOf('Completed ') >= 0) {
             $('#api-status-waiting,#api-status-down').hide();
             $('#api-status-up').show();
-        } else if (msg.indexOf('retrying') >= 0) {
+        } else if (msg.indexOf('server seems to be down') >= 0) {
             $('#api-status-waiting,#api-status-up').hide();
             $('#api-status-down').show();
         }

@@ -6,3 +6,5 @@ Pokemon GO Live Map-linux-x64
 *.pyc
 *.zip
 Update.exe
+win32output
+Thumbs.db

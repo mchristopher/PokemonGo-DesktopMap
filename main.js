@@ -5,6 +5,9 @@ const ipcMain = electron.ipcMain;
 const Menu = electron.Menu;
 const path = require('path');
 const os = require('os');
+const express = require('express');
+const http = require('http');
+const httpProxy = require('express-http-proxy');
 const autoUpdater = electron.autoUpdater;
 //electron.crashReporter.start();
 
@@ -17,30 +20,8 @@ var subpy = null;
 var mainAddr;
 var restarting = false;
 
-// Handle Squirrel startup events
-var handleStartupEvent = function() {
-  if (process.platform !== 'win32') {
-    return false;
-  }
-
-  var squirrelCommand = process.argv[1];
-  switch (squirrelCommand) {
-    case '--squirrel-install':
-    case '--squirrel-updated':
-      app.quit();
-
-      return true;
-    case '--squirrel-uninstall':
-      app.quit();
-
-      return true;
-    case '--squirrel-obsolete':
-      app.quit();
-      return true;
-  }
-};
-
-if (handleStartupEvent()) {
+if (handleSquirrelEvent()) {
+  // squirrel event handled and app will exit in 1000ms, so don't do anything else
   return;
 }
 
@@ -209,9 +190,9 @@ function startPython(auth, code, lat, long, opts) {
 
   // Find open port
   var portfinder = require('portfinder');
-  portfinder.getPort(function (err, port) {
+  portfinder.getPort(function (err, py_port) {
 
-    logData('Got open port: ' + port);
+    logData('Got open python port: ' + py_port);
 
     // Run python web server
     var cmdLine = [
@@ -222,7 +203,7 @@ function startPython(auth, code, lat, long, opts) {
       '--location=' +
         parseFloat(lat).toFixed(7) + ',' + parseFloat(long).toFixed(7),
       '--port',
-      port
+      py_port
     ];
     
     if (opts.is_public) {
@@ -231,7 +212,7 @@ function startPython(auth, code, lat, long, opts) {
     }
 
     if (opts.maps_api_key) {
-      cmdLine.push('--google-maps-key');
+      cmdLine.push('--gmaps-key');
       cmdLine.push(opts.maps_api_key);
     }
 
@@ -280,7 +261,7 @@ function startPython(auth, code, lat, long, opts) {
     });
 
     var rq = require('request-promise');
-    mainAddr = 'http://localhost:' + port;
+    var pyAddr = 'http://127.0.0.1:' + py_port;
 
     var openWindow = function(){
       mainWindow.webContents.send('server-up', mainAddr);
@@ -295,20 +276,112 @@ function startPython(auth, code, lat, long, opts) {
       });
     };
 
-    var startUp = function(){
+    var setupExpress = function() {
+      portfinder.getPort(function(err, express_port) {
+        logData('Got open express port: ' + express_port);
+
+        mainAddr = 'http://127.0.0.1:' + express_port;
+
+        var express_app = express();
+
+        express_app.use('/static', express.static('map/static'));
+        express_app.use('/', httpProxy(pyAddr));
+        express_app.listen(express_port, function () {
+          console.log('Express listening on port ' + express_port);
+        });
+
+        startUpExpress();
+      });
+    };
+
+    var startUpExpress = function(){
       rq(mainAddr)
         .then(function(htmlString){
-          logData('server started!');
+          logData('Express server started!');
           openWindow();
         })
         .catch(function(err){
           //console.log('waiting for the server start...');
-          startUp();
+          startUpExpress();
         });
     };
 
-    startUp();
+    var startUpPython = function(){
+      rq(pyAddr)
+        .then(function(htmlString){
+          logData('Python server started!');
+          setupExpress();
+        })
+        .catch(function(err){
+          //console.log('waiting for the server start...');
+          startUpPython();
+        });
+    };
+
+    startUpPython();
 
   });
 
 };
+
+function handleSquirrelEvent() {
+  if (process.argv.length === 1) {
+    return false;
+  }
+
+  const ChildProcess = require('child_process');
+
+  const appFolder = path.resolve(process.execPath, '..');
+  const rootPokeFolder = path.resolve(appFolder, '..');
+  const updateDotExe = path.resolve(path.join(rootPokeFolder, 'Update.exe'));
+  const exeName = path.basename(process.execPath);
+
+  const spawn = function(command, args) {
+    let spawnedProcess, error;
+
+    try {
+      spawnedProcess = ChildProcess.spawn(command, args, {detached: true});
+    } catch (error) {}
+
+    return spawnedProcess;
+  };
+
+  const spawnUpdate = function(args) {
+    return spawn(updateDotExe, args);
+  };
+
+  const squirrelEvent = process.argv[1];
+  switch (squirrelEvent) {
+    case '--squirrel-install':
+    case '--squirrel-updated':
+      // Optionally do things such as:
+      // - Add your .exe to the PATH
+      // - Write to the registry for things like file associations and
+      //   explorer context menus
+
+      // Install desktop and start menu shortcuts
+      spawnUpdate(['--createShortcut', exeName]);
+
+      setTimeout(app.quit, 1000);
+      return true;
+
+    case '--squirrel-uninstall':
+      // Undo anything you did in the --squirrel-install and
+      // --squirrel-updated handlers
+
+      // Remove desktop and start menu shortcuts
+      spawnUpdate(['--removeShortcut', exeName]);
+
+      setTimeout(app.quit, 1000);
+      return true;
+
+    case '--squirrel-obsolete':
+      // This is called on the outgoing version of your app before
+      // we update to the new version - it's the opposite of
+      // --squirrel-updated
+
+      app.quit();
+      return true;
+  }
+};
+

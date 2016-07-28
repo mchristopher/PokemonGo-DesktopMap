@@ -10,10 +10,12 @@ zip -9ryv ../PokemonGoMap-OSX.zip .
 cd ..
 
 rm -fr PokemonGoMap-Win.zip
-node_modules/.bin/electron-packager . "Pokemon GO Live Map" --platform=win32 --arch=ia32 --icon=pokemon.ico --overwrite --prune --ignore=map/ve --ignore=PokemonGoMap-Lin-x64.zip --ignore=PokemonGoMap-OSX.zip --ignore=PokemonGoMap-Win.zip --ignore="map/Easy Setup" --ignore=distrib.sh --ignore=package_python.sh
+node_modules/.bin/electron-packager . "Pokemon GO Live Map" --platform=win32 --arch=ia32 --icon=pokemon.ico --overwrite --prune --version-string.ProductName="Pokemon GO Live Map" --ignore=map/ve --ignore=PokemonGoMap-Lin-x64.zip --ignore=PokemonGoMap-OSX.zip --ignore=PokemonGoMap-Win.zip --ignore="map/Easy Setup" --ignore=distrib.sh --ignore=package_python.sh
 cd "Pokemon GO Live Map-win32-ia32"
 zip -9rv ../PokemonGoMap-Win.zip .
 cd ..
+
+#grunt create-windows-installer
 
 rm -fr PokemonGoMap-Lin-x64.zip
 node_modules/.bin/electron-packager . "Pokemon GO Live Map" --platform=linux --arch=x64 --icon=pokemon.ico --overwrite --prune --ignore=map/ve --ignore=PokemonGoMap-Lin-x64.zip --ignore=PokemonGoMap-OSX.zip --ignore=PokemonGoMap-Win.zip --ignore="map/Easy Setup" --ignore=distrib.sh --ignore=package_python.sh --ignore=pywin
