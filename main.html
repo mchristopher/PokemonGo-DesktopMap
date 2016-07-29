@@ -269,6 +269,10 @@
         }
     }
 
+    mapView.addEventListener('console-message', function(e) {
+        console.log('MAP:', e.message)
+    });
+
     $( document ).ready(function(){
         ipcRenderer.send('getServer');
         $('#lat').val(geoLat);
