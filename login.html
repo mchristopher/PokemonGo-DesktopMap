@@ -7,7 +7,7 @@
             <title>Pokémon Go - Login</title>
             <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
     </head>
-    <body>
+    <body style="overflow-x:hidden">
         <div class="row text-center">
             <div class="col-xs-12">
                 <h1>Login to Pokémon GO</h1>
@@ -29,34 +29,27 @@
                     </div>
                 </div>
 
-                <br>
-                <h3>Google Accounts</h3>
-                <div class="row">
-                    <div class="col-xs-8 col-xs-offset-2">
-                        <button class="btn btn-lg btn-block btn-primary login"
-                            onclick="doGoogleLogin()">Login with Google</button>
-                    </div>
-                </div>
-
                 <hr>
 
-                <h3>Pokémon Trainers Club Accounts</h3>
                 <div class="row">
-                    <div class="col-xs-8 col-xs-offset-2">
-                        <form id="ptc_form" onsubmit="doPTCLogin()">
-                            <input id="ptc_username" class="form-control" type="text"
-                                placeholder="Username" required>
-                            <input id="ptc_password" class="form-control" type="password"
-                                placeholder="Password" required>
-                            <button class="btn btn-lg btn-block btn-primary login"
-                                onclick="doPTCLogin()">Login with PTC</button>
-                            <div class="checkbox">
-                                <label><input type="checkbox" id="remember" checked="1"> Remember login info</label>
-                            </div>
-                        </form>
-                        <br>
-                        <span id="ptc_errors" style="color: #f00"></span>
-                    </div>
+                  <div class="col-xs-8 col-xs-offset-2">
+                    <form id="ptc_form" onsubmit="doPTCLogin()">
+                      <input id="ptc_username" class="form-control" type="text" placeholder="PTC Username" required>
+                      <input id="ptc_password" class="form-control" type="password" placeholder="PTC Password" required>
+                      <button class="btn btn-lg btn-block btn-primary login" onclick="doPTCLogin()">Login with PTC</button>
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" id="remember" checked="1"> Remember login info</label>
+                      </div>
+                    </form>
+                    <br>
+                    <span id="ptc_errors" style="color: #f00"></span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-xs-8 col-xs-offset-2">
+                    <button class="btn btn-lg btn-block btn-primary login" onclick="doGoogleLogin()">Login with Google</button>
+                  </div>
                 </div>
 
                 <hr>
@@ -156,7 +149,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <hr>
 
                 <h4>Server Options</h4>
@@ -564,17 +557,17 @@
 				toggleGeolocate(true);
 			});
 	}
-	
+
 	function doGeolocateCallback(data) {
 		toggleGeolocate(false);
 		if(data.status != "OK" || data.results.length == 0) {
 			alert("There was an error looking up this address, please try again");
 			return;
 		}
-		
+
 		var loc = data.results[0];
 		console.log("Found location ["+loc.geometry.location.lat+","+loc.geometry.location.lng+"] by google geocode api");
-		
+
 		$("#lat").val(loc.geometry.location.lat);
 		$("#lon").val(loc.geometry.location.lng);
 	}
@@ -584,7 +577,7 @@
 		}
         jQuery('#address-locate').prop("disabled", disabled);
 	}
-	
+
   </script>
 
 </html>
