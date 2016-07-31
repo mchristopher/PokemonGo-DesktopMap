@@ -203,7 +203,9 @@ function startPython(auth, code, lat, long, opts) {
       '--location=' +
         parseFloat(lat).toFixed(7) + ',' + parseFloat(long).toFixed(7),
       '--port',
-      py_port
+      py_port,
+      '--db',
+      path.join(app.getPath('userData'), 'pogom.db')
     ];
     
     if (opts.is_public) {
