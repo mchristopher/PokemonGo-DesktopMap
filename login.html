@@ -286,6 +286,7 @@
         // setupValueAndSetter('filter_type', $('#filter_type'));
         // setupValueAndSetter('pokeids', $('#pokeids'));
         setupValueAndSetter('radius', $('#radius'));
+        setupValueAndSetter('scandelay', $('#scandelay'));
 
         setupValue('last_lat', $('#lat'));
         setupValue('last_lon', $('#lon'));
@@ -393,6 +394,12 @@
         if ($('#radius').val() != '') {
             if (!$('#radius').val().match(/^[0-9]+$/)) {
                 alert('Invalid Radius. Only numbers allowed.');
+                return false;
+            }
+        }
+        if ($('#scandelay').val() != '') {
+            if (!$('#scandelay').val().match(/^[0-9]+$/)) {
+                alert('Invalid Delay. Only numbers allowed.');
                 return false;
             }
         }
@@ -558,6 +565,7 @@
             is_public: checked('is_public'),
             //fast_scan: checked('fast_scan'),
             radius: $('#radius').val(),
+            scandelay: $('#scandelay').val(),
             username: $('#ptc_username').val(),
             password: $('#ptc_password').val(),
             maps_api_key: $('#maps_api_key').val()
