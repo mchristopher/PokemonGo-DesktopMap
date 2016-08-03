@@ -244,6 +244,13 @@ function startPython(auth, code, lat, long, opts) {
       cmdLine.push('7');
     }
 
+    cmdLine.push('--scan-delay');
+    if (opts.scandelay && opts.scandelay != '') {
+      cmdLine.push(opts.scandelay);
+    } else {
+      cmdLine.push('10');
+    }
+
     // console.log(cmdLine);
     logData('Maps path: ' + path.join(__dirname, 'map'));
     logData('python ' + cmdLine.join(' '));
