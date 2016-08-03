@@ -37,73 +37,137 @@ try {
   autoUpdater.checkForUpdates();
 } catch (e) {}
 
+const appName = app.getName();
+
 // Setup menu bar
 var template = [{
-    label: "Application",
-    submenu: [{
-        label: "About Application",
-        selector: "orderFrontStandardAboutPanel:"
-    }, {
-        type: "separator"
-    }, {
-        label: "Quit",
-        accelerator: "Command+Q",
-        click: function() {
-            app.quit();
-        }
-    }]
-}, {
     label: "Edit",
-    submenu: [{
-        label: "Undo",
-        accelerator: "CmdOrCtrl+Z",
-        selector: "undo:"
-    }, {
-        label: "Redo",
-        accelerator: "Shift+CmdOrCtrl+Z",
-        selector: "redo:"
-    }, {
-        type: "separator"
-    }, {
-        label: "Cut",
-        accelerator: "CmdOrCtrl+X",
-        selector: "cut:"
-    }, {
-        label: "Copy",
-        accelerator: "CmdOrCtrl+C",
-        selector: "copy:"
-    }, {
-        label: "Paste",
-        accelerator: "CmdOrCtrl+V",
-        selector: "paste:"
-    }, {
-        label: "Select All",
-        accelerator: "CmdOrCtrl+A",
-        selector: "selectAll:"
-    }]
-},
-{
+    submenu: [
+      {
+        role: 'undo'
+      }, {
+        role: 'redo'
+      }, {
+        type: 'separator'
+      }, {
+        role: 'cut'
+      }, {
+        role: 'copy'
+      }, {
+        role: 'paste'
+      }, {
+        role: 'pasteandmatchstyle'
+      }, {
+        role: 'delete'
+      }, {
+        role: 'selectall'
+      }
+    ]
+  }, {
     label: "Tools",
     submenu: [
       {
         label: "Refresh",
         accelerator: "CmdOrCtrl+R",
         click(item, focusedWindow) {
-          if (focusedWindow) focusedWindow.reload();
+          if (focusedWindow) {
+            focusedWindow.reload();
+          }
         }
       },
       {
         label: 'Toggle Developer Tools',
         accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
         click(item, focusedWindow) {
-          if (focusedWindow)
+          if (focusedWindow) {
             focusedWindow.webContents.toggleDevTools();
+          }
         }
       }
     ]
-}
+  }, {
+    role: 'window',
+    submenu: [
+      {
+        role: 'minimize'
+      },
+      {
+        role: 'close'
+      }
+    ]
+  },
+  {
+    role: 'help',
+    submenu: [
+      {
+        label: 'View project on GitHub...',
+        click () {
+          require('electron').shell.openExternal('https://github.com/mchristopher/PokemonGo-DesktopMap')
+        }
+      }
+    ]
+  }
 ];
 
+if (process.platform === 'darwin') {
+  template.unshift({
+    label: appName,
+    submenu: [
+      {
+        role: 'about'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        role: 'services',
+        submenu: []
+      },
+      {
+        type: 'separator'
+      },
+      {
+        role: 'hide'
+      },
+      {
+        role: 'hideothers'
+      },
+      {
+        role: 'unhide'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        role: 'quit'
+      }
+    ]
+  })
+  // Window menu.
+  template[3].submenu = [
+    {
+      label: 'Close',
+      accelerator: 'CmdOrCtrl+W',
+      role: 'close'
+    },
+    {
+      label: 'Minimize',
+      accelerator: 'CmdOrCtrl+M',
+      role: 'minimize'
+    },
+    {
+      label: 'Zoom',
+      role: 'zoom'
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Bring All to Front',
+      role: 'front'
+    }
+  ]
+}
 
 app.on('window-all-closed', function() {
   if (restarting) {
