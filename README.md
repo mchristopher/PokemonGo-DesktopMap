@@ -4,7 +4,7 @@
 <img src="https://raw.githubusercontent.com/mchristopher/PokemonGo-DesktopMap/master/cover_img.png">
 </p>
 
-Electron app that bundles the great [PokemonGo-Map](https://github.com/AHAAAAAAA/PokemonGo-Map) project with an HTML UI and Python dependencies. Shows live visualizaiton of Pokémon in an area.
+Electron app that bundles the great [PokemonGo-Map](https://github.com/AHAAAAAAA/PokemonGo-Map) project with HTML UI and Python dependencies. Shows live visualization of Pokémon in an area.
 
 Getting Started
 ---------------
