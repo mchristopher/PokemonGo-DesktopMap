@@ -125,7 +125,15 @@ app.on('ready', function() {
 function setupMainWindow() {
   restarting = false;
 
-  mainWindow = new BrowserWindow({width: 800, height: 600, minWidth: 700, minHeight: 500});
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    minWidth: 700,
+    minHeight: 500,
+    webPreferences: {
+      partition: 'persist:pogolivemap'
+    }
+  });
   mainWindow.loadURL('file://' + __dirname + '/login.html');
 
   mainWindow.on('closed', function() {
