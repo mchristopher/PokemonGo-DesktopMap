@@ -4,7 +4,7 @@
   "author": "Mike Christopher",
   "repository": "https://github.com/mchristopher/PokemonGo-DesktopMap",
   "license": "MIT",
-  "version" : "0.1.7",
+  "version" : "0.2.0",
   "main"    : "main.js",
   "scripts": {
     "postinstall": "cd ./map/ && pip install -r requirements.txt",
