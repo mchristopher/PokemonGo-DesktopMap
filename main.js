@@ -199,7 +199,7 @@ function startPython(auth, code, lat, long, opts) {
   // Find open port
   var portfinder = require('portfinder');
   portfinder.getPort(function (err, py_port) {
-
+	
     logData('Got open python port: ' + py_port);
 
     // Run python web server
@@ -290,22 +290,40 @@ function startPython(auth, code, lat, long, opts) {
     };
 
     var setupExpress = function() {
-      portfinder.getPort(function(err, express_port) {
-        logData('Got open express port: ' + express_port);
+		var portExpress = opts.port;
+		
+		if(!portExpress){
+			portfinder.getPort(function(err, express_port) {
+				startUpExpressServer(express_port);
+			});
+		}
+		else{
+			// port should be higher then 0, and smaller then 65535
+			
+			if(portExpress <=0 || portExpress > 65535){
+				logData('Cannot start server at port ' + portExpress + ' because it is in an invalid range (should be between 1 and 65535)');
+			}
+			else{
+				startUpExpressServer(portExpress);	
+			}		
+		}           
+    };
+	
+	var startUpExpressServer = function(portExpress){
+		logData('Got open express port: ' + portExpress);
 
-        mainAddr = 'http://localhost:' + express_port;
+        mainAddr = 'http://localhost:' + portExpress;
 
         var express_app = express();
 
         express_app.use('/static', express.static('map/static'));
         express_app.use('/', httpProxy(pyAddr));
-        express_app.listen(express_port, function () {
-          console.log('Express listening on port ' + express_port);
+        express_app.listen(portExpress, function () {
+          console.log('Express listening on port ' + portExpress);
         });
 
-        startUpExpress();
-      });
-    };
+        startUpExpress(); 
+	};
 
     var startUpExpress = function(){
       rq(mainAddr)
@@ -315,6 +333,7 @@ function startPython(auth, code, lat, long, opts) {
         })
         .catch(function(err){
           //console.log('waiting for the server start...');
+		  logData(err);
           startUpExpress();
         });
     };
@@ -327,15 +346,19 @@ function startPython(auth, code, lat, long, opts) {
         })
         .catch(function(err){
           //console.log('waiting for the server start...');
+		  logData(err);
           startUpPython();
         });
     };
 
     startUpPython();
-
   });
 
 };
+
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
 
 function handleSquirrelEvent() {
   if (process.argv.length === 1) {

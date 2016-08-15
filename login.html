@@ -172,6 +172,15 @@
                                 </div>
                             </div>
                         </div>
+						<br>
+						<div class="row">
+                            <div class="col-xs-6 col-xs-offset-3">
+                                <div class="col-xs-10 col-xs-offset-1">
+                                    <input id="port" class="form-control"
+                                        type="number" placeholder="Server port">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -544,6 +553,7 @@
             is_public: checked('is_public'),
             //fast_scan: checked('fast_scan'),
             radius: $('#radius').val(),
+			port: $('#port').val(),
             username: $('#ptc_username').val(),
             password: $('#ptc_password').val(),
             maps_api_key: $('#maps_api_key').val()
