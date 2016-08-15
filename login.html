@@ -132,7 +132,26 @@
                                 Larger numbers increase search area but updates are slower.
                             </span>
                         </div>
+                        <br>
                     </div>
+
+                    <div class="col-xs-8 col-xs-offset-2">
+                        <div class="row">
+                            <div class="col-xs-6 col-xs-offset-3">
+                                <div class="col-xs-10 col-xs-offset-1">
+                                    <input id="scandelay" class="form-control"
+                                        type="number" placeholder="Delay (default 10)">
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <span>
+                                Numbers below the default value will lead to some pokemon being missed by the scanner.
+                            </span>
+                        </div>
+                    </div>
+
                     <!--<div class="col-xs-8 col-xs-offset-2">
                         <div class="row">
                             <div class="col-xs-12">
@@ -272,6 +291,7 @@
         // setupValueAndSetter('filter_type', $('#filter_type'));
         // setupValueAndSetter('pokeids', $('#pokeids'));
         setupValueAndSetter('radius', $('#radius'));
+        setupValueAndSetter('scandelay', $('#scandelay'));
 
         setupValue('last_lat', $('#lat'));
         setupValue('last_lon', $('#lon'));
@@ -379,6 +399,12 @@
         if ($('#radius').val() != '') {
             if (!$('#radius').val().match(/^[0-9]+$/)) {
                 alert('Invalid Radius. Only numbers allowed.');
+                return false;
+            }
+        }
+        if ($('#scandelay').val() != '') {
+            if (!$('#scandelay').val().match(/^[0-9]+$/)) {
+                alert('Invalid Delay. Only numbers allowed.');
                 return false;
             }
         }
@@ -544,6 +570,7 @@
             is_public: checked('is_public'),
             //fast_scan: checked('fast_scan'),
             radius: $('#radius').val(),
+            scandelay: $('#scandelay').val(),
             username: $('#ptc_username').val(),
             password: $('#ptc_password').val(),
             maps_api_key: $('#maps_api_key').val()
