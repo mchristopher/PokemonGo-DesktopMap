@@ -42,3 +42,10 @@ Licensing
 ---------
 
 This project is licensed under the MIT License.
+
+Binary Python Modules
+---------------------
+ * xxhash
+ * pyproj
+ * Cryptodome
+ 

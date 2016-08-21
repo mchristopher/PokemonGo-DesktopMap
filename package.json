@@ -5,10 +5,10 @@
   "repository": "https://github.com/mchristopher/PokemonGo-DesktopMap",
   "license": "MIT",
   "version" : "0.2.1",
-  "main"    : "main.js",
+  "main": "app/main.js",
   "scripts": {
     "postinstall": "cd ./map/ && pip install -r requirements.txt",
-    "start": "electron main.js"
+    "start": "electron ."
   },
   "dependencies": {
     "request": "*",
