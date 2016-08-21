@@ -51,11 +51,6 @@
                     <span id="ptc_errors" style="color: #f00"></span>
                   </div>
                 </div>
-                <div class="row">
-                  <div class="col-xs-8 col-xs-offset-2">
-                    <button class="btn btn-lg btn-block btn-primary login" onclick="doGoogleLogin()">Login with Google</button>
-                  </div>
-                </div>
 
                 <hr>
 
@@ -385,19 +380,6 @@
         return true;
     }
 
-    function doGoogleLogin() {
-        if (!checkParams()){
-            return;
-        }
-        toggleLogin(true);
-        doLogin("https://accounts.google.com/o/oauth2/auth?" + jQuery.param( {
-            "response_type": "code",
-            "client_id": "848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com",
-            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
-            "scope":"openid email https://www.googleapis.com/auth/userinfo.email"
-        } ), handleGoogleCallback);
-    }
-
     function doPTCLogin() {
         if (!checkParams()){
             return;
@@ -466,68 +448,6 @@
 
       // Login by passing in password to prevent timeouts
       completeLogin('ptc', '');
-
-    }
-
-    function handleGoogleCallback(authWindow, newUrl) {
-        var parsedUrl = url.parse(newUrl, true);
-
-        if (parsedUrl.hostname != 'accounts.google.com') {
-            return;
-        }
-
-        if (parsedUrl.pathname != '/o/oauth2/approval') {
-            return;
-        }
-
-        var winContents = authWindow.webContents;
-
-        winContents.on('dom-ready', function(){
-
-            winContents.executeJavaScript(
-                'document.getElementById("code").value',
-                true,
-                function(result) {
-                    var code = result;
-                    if (code) {
-                        // Close the browser if code found or error
-                        authWindow.destroy();
-                    }
-
-                    if (code) {
-                        getGoogleToken(code);
-                    } else {
-                        toggleLogin(false);
-                        alert('Oops! Something went wrong and we couldn\'t ' +
-                              'log you in. Please try again.\n' +
-                              'Unable to get token from Google.');
-                    }
-                });
-
-        });
-
-        function getGoogleToken(code) {
-            request.post(
-                'https://accounts.google.com/o/oauth2/token',
-                { form: {
-                    'client_id': '848232511240-73ri3t7plvk96pj4f85uj8otdat2alem.apps.googleusercontent.com',
-                    'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
-                    'client_secret': 'NCjF1TLi2CcY6t5mt0ZveuL7',
-                    'grant_type': 'authorization_code',
-                    'code': code,
-                } },
-                function (error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        completeLogin('google', JSON.parse(body).id_token);
-                    } else {
-                        toggleLogin(false);
-                        alert('Oops! Something went wrong and we couldn\'t ' +
-                              'log you in. Please try again.\n' +
-                              'Unable to exchange token for authorization code.');
-                    }
-                }
-            );
-        }
 
     }
 
