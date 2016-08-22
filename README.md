@@ -26,6 +26,8 @@ Development is currently done on OS X and tested on Windows 10. To get started, 
 
     brew install python node
     pip install virtualenv
+    virtualenv .
+    source bin/activate
     npm install
 
 To run the project, run:
