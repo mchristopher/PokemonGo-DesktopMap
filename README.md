@@ -41,7 +41,7 @@ To make a final build of the project, use grunt:
 Contributing
 ------------
 
-All contributions are welcome. If you would like to improve the map backend, please see the `package` branch on the [PokemonGo-Map](https://github.com/mchristopher/PokemonGo-Map/tree/package) repo.
+All contributions are welcome. If you would like to improve the map backend, please see the [PokemonGo-Map](https://github.com/PokemonGoMap/PokemonGo-Map) project.
 
 Licensing
 ---------

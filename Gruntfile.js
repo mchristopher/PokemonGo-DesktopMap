@@ -34,7 +34,7 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     clean: {
-      dist: [path.join(path.resolve(), 'dist')],
+      //dist: [path.join(path.resolve(), 'dist')],
       pyc: [path.join(path.resolve(), 'app', '**', '*.pyc')]
     },
     execute: {
@@ -61,10 +61,13 @@ module.exports = function(grunt) {
         outputDirectory: path.join(path.resolve(), 'dist', 'pokemon-go-map-win32-installer'),
         title: 'Pokemon GO Live Map',
         exe: "pokemon-go-map.exe",
+        noMsi: true,
+        setupExe: 'PokemonGoMap-Win.exe',
         setupIcon: path.join(path.resolve(), 'pokemon.ico'),
         iconUrl: 'https://raw.githubusercontent.com/mchristopher/PokemonGo-DesktopMap/master/pokemon.ico',
         loadingGif: path.join(path.resolve(), 'installing.gif'),
-        productName: 'Pokemon GO Live Map'
+        productName: 'Pokemon GO Live Map',
+        remoteReleases: 'https://github.com/mchristopher/PokemonGo-DesktopMap/releases/download/v0.2.1'
       }
     },
     'electron': {
@@ -93,7 +96,7 @@ module.exports = function(grunt) {
           dir: 'app',
           out: 'dist',
           overwrite: true,
-          asar: true,
+          asar: false,
           ignore: common_ignore_dir.concat(win_ignore_dir),
           version: '1.3.3',
           platform: 'win32',
