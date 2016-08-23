@@ -13,7 +13,8 @@ if [ -d packages ]; then
   find . -name "xxhash" | xargs rm -rf
   rm -fr "babel/locale-data"
   zip -9mrv packages.zip .
-  mv packages.zip ..
+  rm -fr ../app/packages.zip
+  mv packages.zip ../app/
   cd ..
   rm -rf packages
 fi

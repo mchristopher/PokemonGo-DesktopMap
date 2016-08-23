@@ -32,6 +32,11 @@ To run the project, run:
 
     npm start
 
+To make a final build of the project, use grunt:
+
+    grunt win32
+    grunt default
+
 
 Contributing
 ------------

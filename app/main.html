@@ -38,7 +38,7 @@
                 #sharing {
                     color: #093;
                 }
-                .sharing-on, #api-status-down, #api-status-up {
+                .sharing-on, #api-status-down, #api-status-up, #api-status-ban {
                     display: none;
                 }
             </style>
@@ -65,6 +65,7 @@
                                 <div class="col-xs-4 text-center">
                                     <a href="#" class="btn btn-xl btn-default" id="api-status-waiting">Waiting</a>
                                     <a href="#" class="btn btn-xl btn-danger" id="api-status-down">Outage</a>
+                                    <a href="#" class="btn btn-xl btn-danger" id="api-status-ban">Possible Ban</a>
                                     <a href="#" class="btn btn-xl btn-success" id="api-status-up">Operational</a>
                                 </div>
                                 <div class="col-xs-4 text-right">
@@ -174,13 +175,17 @@
     });
 
     function handleServerStatus(msg) {
-        if (msg.indexOf('Upserted ') >= 0) {
-            $('#api-status-waiting,#api-status-down').hide();
+        if (msg.indexOf('Parsing found') >= 0) {
+            $('#api-status-waiting,#api-status-down,#api-status-ban').hide();
             $('#api-status-up').show();
         } else if (msg.indexOf('server seems to be down') >= 0 ||
-            msg.indexOf('heavy load') >= 0) {
-            $('#api-status-waiting,#api-status-up').hide();
+            msg.indexOf('heavy load') >= 0 ||
+            msg.indexOf('Invalid response') >= 0) {
+            $('#api-status-waiting,#api-status-up,#api-status-ban').hide();
             $('#api-status-down').show();
+        } else if (msg.indexOf('possibly banned account') >= 0) {
+            $('#api-status-waiting,#api-status-up,#api-status-down').hide();
+            $('#api-status-ban').show();
         }
     }
 

@@ -204,7 +204,7 @@ function startPython(auth, code, lat, long, opts) {
 
     // Run python web server
     var cmdLine = [
-      './runserver.py',
+      './run_map.py',
       '--cors',
       '--auth-service',
       auth,
@@ -253,7 +253,7 @@ function startPython(auth, code, lat, long, opts) {
     }
 
     // console.log(cmdLine);
-    logData('Maps path: ' + path.join(__dirname, 'map'));
+    logData('Maps path: ' + path.join(__dirname));
     logData('python ' + cmdLine.join(' '));
 
     var pythonCmd = 'python';
@@ -262,7 +262,7 @@ function startPython(auth, code, lat, long, opts) {
     }
 
     subpy = require('child_process').spawn(pythonCmd, cmdLine, {
-      cwd: path.join(__dirname, 'map'),
+      cwd: path.join(__dirname),
       detached: true
     });
 
