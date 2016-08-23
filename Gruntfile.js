@@ -74,7 +74,7 @@ module.exports = function(grunt) {
         iconUrl: 'https://raw.githubusercontent.com/mchristopher/PokemonGo-DesktopMap/master/pokemon.ico',
         loadingGif: path.join(path.resolve(), 'installing.gif'),
         productName: 'Pokemon GO Live Map',
-        remoteReleases: 'https://github.com/mchristopher/PokemonGo-DesktopMap/releases/download/v0.3.0'
+        remoteReleases: 'https://github.com/mchristopher/PokemonGo-DesktopMap/releases/download/v0.3.1'
       }
     },
     'electron': {
@@ -86,7 +86,7 @@ module.exports = function(grunt) {
           overwrite: true,
           asar: false,
           ignore: common_ignore_dir.concat(mac_ignore_dir),
-          version: '1.3.3',
+          version: '1.2.7',
           platform: 'darwin',
           arch: 'x64',
           'app-version': appConfig.version,
@@ -105,7 +105,7 @@ module.exports = function(grunt) {
           overwrite: true,
           asar: false,
           ignore: common_ignore_dir.concat(win_ignore_dir),
-          version: '1.3.3',
+          version: '1.2.7',
           platform: 'win32',
           arch: 'ia32',
           'app-version': appConfig.version,
