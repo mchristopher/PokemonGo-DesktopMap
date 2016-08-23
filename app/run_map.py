@@ -1,49 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
 import sys
 import os
 
+import check_prereqs
+
 current_path = os.path.abspath(os.path.dirname(__file__))
-package_path = os.path.join(
-    current_path, 'packages.zip')
-cacert_path = os.path.join(
-    current_path, 'cacert.pem')
 map_path = os.path.join(
-    current_path, 'map')
+  current_path, 'map')
 
-if not ('packages.zip' in sys.path):
-  sys.path.insert(0, package_path)
+# Set CA bundle for Requests library
+os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(
+  os.path.abspath(os.path.dirname(__file__)), 'cacert.pem')
 
-import platform
-# Import appropriate directory for platform
-if sys.platform == "win32" or sys.platform == "cygwin":
-  if platform.architecture()[0] == '32bit':
-    platform_name = "win32"
-  else:
-    err = "Windows 64-bit processes currently unsupported."
-    raise Exception(err)
-elif sys.platform == "darwin":
-  if platform.architecture()[0] == '64bit':
-    platform_name = "osx64"
-  else:
-    err = "OSX 32-bit processes currently unsupported."
-    raise Exception(err)
-else:
-  err = "Unexpected/unsupported platform '{}'.".format(sys.platform)
-  raise Exception(err)
+# Set pyproj data path
+os.environ['PROJ_DIR'] = os.path.join(
+  os.path.abspath(os.path.dirname(__file__)),
+  'pylibs', 'shared', 'pyproj_data')
 
-platform_path = os.path.join(current_path, "pylibs", platform_name)
+# Monkey patch pkg_resources since zip files aren't
+# properly supported
+class Distribution:
+  version = '3.0.0'
 
-if not os.path.isdir(platform_path):
-  err = "Could not find {} python libraries {}".format(sys.platform, platform_path)
-  raise Exception(err)
+def get_distribution(dist):
+  return Distribution()
 
-sys.path.append(platform_path)
-
-# Setting CA bundle for Requests library
-os.environ['REQUESTS_CA_BUNDLE'] = cacert_path
+import pkg_resources
+pkg_resources.get_distribution = get_distribution
 
 # Import map project and run
 sys.path.append(map_path)

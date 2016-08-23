@@ -6,10 +6,12 @@ if [ -d packages ]; then
   cd packages
   find . -name "*.pyc" -delete
   find . -name "*.so" -delete
+  find . -name "*.dist-info" | xargs rm -rf
   find . -name "*.egg-info" | xargs rm -rf
   find . -name "Cryptodome" | xargs rm -rf
   find . -name "pyproj" | xargs rm -rf
   find . -name "xxhash" | xargs rm -rf
+  rm -fr "babel/locale-data"
   zip -9mrv packages.zip .
   mv packages.zip ..
   cd ..
