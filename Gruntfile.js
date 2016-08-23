@@ -11,13 +11,20 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-compress');
 
   var appConfig = {
-    name: require('./package.json').name,
-    version: require('./package.json').version || '0.0.1',
-    author: require('./package.json').author,
+    name: require('./app/package.json').name,
+    version: require('./app/package.json').version || '0.0.1',
+    author: require('./app/package.json').author,
   };
 
   var common_ignore_dir = [
     '/node_modules/grunt($|/)',
+    '/map/package.json',
+    '/map/Gruntfile.js',
+    '.github',
+    '.git',
+    'map/contrib',
+    'map/docs',
+    'map/Tools',
     '.DS_Store',
     '.gitignore',
     'ngrok-linux'
@@ -34,7 +41,7 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     clean: {
-      //dist: [path.join(path.resolve(), 'dist')],
+      osx_dist: [path.join(path.resolve(), 'dist', 'pokemon-go-map-darwin-x64')],
       pyc: [path.join(path.resolve(), 'app', '**', '*.pyc')]
     },
     execute: {
@@ -67,7 +74,7 @@ module.exports = function(grunt) {
         iconUrl: 'https://raw.githubusercontent.com/mchristopher/PokemonGo-DesktopMap/master/pokemon.ico',
         loadingGif: path.join(path.resolve(), 'installing.gif'),
         productName: 'Pokemon GO Live Map',
-        remoteReleases: 'https://github.com/mchristopher/PokemonGo-DesktopMap/releases/download/v0.2.1'
+        remoteReleases: 'https://github.com/mchristopher/PokemonGo-DesktopMap/releases/download/v0.3.0'
       }
     },
     'electron': {
@@ -115,13 +122,19 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('default', [
-    'clean',
+    'osx',
+    'win32'
+  ]);
+
+  grunt.registerTask('osx', [
+    'clean:osx_dist',
+    'clean:pyc',
     'execute',
     'electron:macos',
     'shell:compressOsx'
   ]);
   grunt.registerTask('win32', [
-    'clean',
+    'clean:pyc',
     'electron:win32',
     'create-windows-installer',
   ]);
