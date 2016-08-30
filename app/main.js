@@ -33,10 +33,6 @@ autoUpdater.on('update-downloaded', function(){
   mainWindow.webContents.send('update-ready');
 });
 
-try {
-  autoUpdater.checkForUpdates();
-} catch (e) {}
-
 // Setup menu bar
 var template = [{
     label: "Application",
@@ -134,6 +130,13 @@ function setupMainWindow() {
       partition: 'persist:pogolivemap'
     }
   });
+
+  mainWindow.webContents.once("did-frame-finish-load", function (e) {
+    try {
+      autoUpdater.checkForUpdates();
+    } catch (e) {}
+  });
+
   mainWindow.loadURL('file://' + __dirname + '/login.html');
 
   mainWindow.on('closed', function() {
