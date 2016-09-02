@@ -38,20 +38,23 @@
 
                 <div class="row">
                   <div class="col-xs-8 col-xs-offset-2">
-                    <form id="ptc_form" onsubmit="doPTCLogin()">
-                      <input id="ptc_username" class="form-control" type="text" placeholder="PTC Username" required>
-                      <input id="ptc_password" class="form-control" type="password" placeholder="PTC Password" required>
-                      <button class="btn btn-lg btn-block btn-primary login" onclick="doPTCLogin()">Login with PTC</button>
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" id="remember" checked="1"> Remember login info</label>
-                      </div>
-                    </form>
+
+                  <table class="table">
+                      <thead>
+                          <th>Service</th>
+                          <th>Username</th>
+                          <th></th>
+                      </thead>
+                      <tbody align="left" id="actDisplay">
+                      </tbody>
+                  </table>
+
+                    <button class="btn btn-lg btn-block btn-primary"
+                        data-toggle="modal" data-target="#add-acct">Add New Account</button>
                     <br>
-                    <span id="ptc_errors" style="color: #f00"></span>
-                    <span style="color: #f00">
-                        <a href="https://sso.pokemon.com/sso/login" class="new-window">Create a PTC Account</a>
-                    </span>
+                    <br>
+                    <button class="btn btn-lg btn-block btn-success" onclick="startServer()">Start Server</button>
+
                   </div>
                 </div>
 
@@ -186,6 +189,44 @@
           </div>
         </div>
 
+        <div class="modal fade" id="add-acct" tabindex="-1"
+            role="dialog" aria-labelledby="actModalLbl">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="actModalLbl">Add Account</h4>
+              </div>
+              <div class="modal-body">
+                <div class="text-center">
+                    <div>
+
+                        <form id="act_form" onsubmit="verifyAndAddAccount()">
+                          <input id="username" class="form-control" type="text" placeholder="Username" required>
+                          <input id="password" class="form-control" type="password" placeholder="Password" required>
+                          <div class="radio">
+                            <label class="radio-inline"><input type="radio" name="acttype" value="ptc" checked>PTC</label>
+                            <label class="radio-inline"><input type="radio" name="acttype" value="google">Google</label>
+                        </div>
+                          <button class="btn btn-lg btn-block btn-primary login" onclick="verifyAndAddAccount()">Add Account</button>
+                        </form>
+
+                        <br><br>
+
+                        <span id="ptc_errors" style="color: #f00"></span>
+                        <br>
+                        <span style="color: #f00">
+                            <a href="https://sso.pokemon.com/sso/login"
+                                class="new-window">Create a PTC Account</a>
+                        </span>
+
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
     </body>
 
   <script type="text/javascript">
@@ -212,6 +253,7 @@
 
     var geoLat = 34.0432108;
     var geoLon = -118.2675059;
+    var userAccounts = [];
 
     $( document ).ready(function(){
         // Show version
@@ -231,7 +273,7 @@
 
         // Get checkbox state
         [
-            'remember', 'is_public'
+            'is_public'
         ].forEach(function(elem){
             if (localStorage.getItem(elem)) {
                 document.getElementById(elem).checked = (
@@ -242,18 +284,17 @@
             });
         });
 
-        if (checked('remember')) {
-            setupValue('ptc_username', $('#ptc_username'));
-            setupValue('ptc_password', $('#ptc_password'));
-        }
-
-        // setupValueAndSetter('filter_type', $('#filter_type'));
-        // setupValueAndSetter('pokeids', $('#pokeids'));
         setupValueAndSetter('radius', $('#radius'));
 
-        setupValue('last_lat', $('#lat'));
-        setupValue('last_lon', $('#lon'));
+        setupValueAndSetter('last_lat', $('#lat'));
+        setupValueAndSetter('last_lon', $('#lon'));
         setupValueAndSetter('maps_api_key', $('#maps_api_key'));
+
+        if (localStorage.getItem('user_acct')) {
+            userAccounts = JSON.parse(localStorage.getItem('user_acct'));
+        }
+
+        populateUserAccounts();
     });
 
     function setupValue(key, elem) {
@@ -274,12 +315,23 @@
     }
 
     function saveState() {
-        if (checked('remember')) {
-            localStorage.setItem("ptc_username", $('#ptc_username').val());
-            localStorage.setItem("ptc_password", $('#ptc_password').val());
-        }
-        localStorage.setItem("last_lat", $('#lat').val());
-        localStorage.setItem("last_lon", $('#lon').val());
+        localStorage.setItem('user_acct', JSON.stringify(userAccounts));
+    }
+
+    function populateUserAccounts() {
+        var displayHtml = '';
+        userAccounts.forEach(function(val, idx) {
+            displayHtml += '<tr><td>'+val.type+'</td>';
+            displayHtml += '<td>'+val.user+'</td>';
+            displayHtml += '<td><a href="#" onclick="deleteUser('+idx+')">[X]</a></td></tr>';
+        });
+        $('#actDisplay').html(displayHtml);
+        saveState();
+    }
+
+    function deleteUser(idx) {
+        userAccounts.splice(idx, 1);
+        populateUserAccounts();
     }
 
     navigator.geolocation.getCurrentPosition(function success(position) {
@@ -289,7 +341,6 @@
         $('#lon').prop('placeholder', geoLon);
         console.log("Got location: " + geoLat + ", " + geoLon);
     }, function error(err) {
-        console.log("Error getting location, trying second provider", err);
         $.getJSON("http://ipinfo.io", function(ipinfo){
             console.log("Found location ["+ipinfo.loc+"] by ipinfo.io");
             var latLong = ipinfo.loc.split(",");
@@ -315,6 +366,28 @@
 
     function startUpdate() {
         ipcRenderer.send('installUpdate');
+    }
+
+    function verifyAndAddAccount() {
+        var acttype = $('input[name=acttype]:checked', '#act_form').val();
+        if (acttype == 'ptc') {
+            doPTCLogin();
+        } else {
+            addAccount();
+        }
+    }
+
+    function addAccount() {
+        var acctInfo = {
+            user: $('#username').val(),
+            pass: $('#password').val(),
+            type: $('input[name=acttype]:checked', '#act_form').val()
+        };
+        $('#username').val('');
+        $('#password').val('');
+        $('#add-acct').modal('hide');
+        userAccounts.push(acctInfo);
+        populateUserAccounts();
     }
 
     function doLogin(ssoUrl, callback) {
@@ -360,17 +433,18 @@
                 return false;
             }
         }
+        if (userAccounts.length <= 0) {
+            alert('You must add at least 1 account.');
+            return false;
+        }
         return true;
     }
 
     function doPTCLogin() {
-        if (!checkParams()){
-            return;
-        }
         toggleLogin(true);
         jQuery('#ptc_errors').html('');
-        var username = jQuery('#ptc_username').val(),
-            password = jQuery('#ptc_password').val();
+        var username = jQuery('#username').val(),
+            password = jQuery('#password').val();
 
         // Reset cookie jar
         ptcJar = request.jar();
@@ -428,10 +502,15 @@
     }
 
     function handlePokemonCallback(newUrl) {
+      toggleLogin(false);
+      addAccount();
+    }
 
-      // Login by passing in password to prevent timeouts
-      completeLogin('ptc', '');
-
+    function startServer() {
+        if (!checkParams()){
+            return;
+        }
+        completeLogin('', '');
     }
 
     function completeLogin(auth, code) {
@@ -447,9 +526,8 @@
             is_public: checked('is_public'),
             //fast_scan: checked('fast_scan'),
             radius: $('#radius').val(),
-            username: $('#ptc_username').val(),
-            password: $('#ptc_password').val(),
-            maps_api_key: $('#maps_api_key').val()
+            maps_api_key: $('#maps_api_key').val(),
+            accounts: userAccounts
         });
     }
 
@@ -479,6 +557,7 @@
         $("#lat").val(loc.geometry.location.lat);
         $("#lon").val(loc.geometry.location.lng);
     }
+
     function toggleGeolocate(disabled) {
         if(disabled == null) {
             disabled = $("#address").val().trim().length == 0;

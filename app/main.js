@@ -209,8 +209,6 @@ function startPython(auth, code, lat, long, opts) {
     var cmdLine = [
       './run_map.py',
       '--cors',
-      '--auth-service',
-      auth,
       '--location=' +
         parseFloat(lat).toFixed(7) + ',' + parseFloat(long).toFixed(7),
       '--port',
@@ -234,17 +232,14 @@ function startPython(auth, code, lat, long, opts) {
       cmdLine.push(opts.maps_api_key);
     }
 
-    if (auth == 'ptc' && opts.username) {
+    opts.accounts.forEach(function(val) {
+      cmdLine.push('--auth-service');
+      cmdLine.push(val.type);
       cmdLine.push('--username');
-      cmdLine.push(opts.username);
+      cmdLine.push(val.user);
       cmdLine.push('--password');
-      cmdLine.push(opts.password);
-    }
-
-    if (auth == 'google' && code) {
-      cmdLine.push('--token');
-      cmdLine.push(code);
-    }
+      cmdLine.push(val.pass);
+    });
 
     // Add options
 
