@@ -12,7 +12,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "electron-prebuilt": "*",
+    "electron-prebuilt": "1.2.7",
     "electron-packager": "*",
     "grunt-electron-installer": "*",
     "grunt-electron-packager": "*",

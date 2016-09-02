@@ -216,7 +216,7 @@ function startPython(auth, code, lat, long, opts) {
       '--port',
       py_port,
       '--db',
-      path.join(app.getPath('userData'), 'pogom.db')
+      path.join(app.getPath('userData'), 'pogom-' + version + '.db')
     ];
     
     if (opts.is_public) {

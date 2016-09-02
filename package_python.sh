@@ -11,6 +11,7 @@ if [ -d packages ]; then
   find . -name "Cryptodome" | xargs rm -rf
   find . -name "pyproj" | xargs rm -rf
   find . -name "xxhash" | xargs rm -rf
+  find . -name "gevent" | xargs rm -rf
   rm -fr "babel/locale-data"
   zip -9mrv packages.zip .
   rm -fr ../app/packages.zip
