@@ -180,7 +180,8 @@
             $('#api-status-up').show();
         } else if (msg.indexOf('server seems to be down') >= 0 ||
             msg.indexOf('heavy load') >= 0 ||
-            msg.indexOf('Invalid response') >= 0) {
+            msg.indexOf('Invalid response') >= 0 ||
+            msg.indexOf('Exception in search_worker') >= 0) {
             $('#api-status-waiting,#api-status-up,#api-status-ban').hide();
             $('#api-status-down').show();
         } else if (msg.indexOf('possibly banned account') >= 0) {

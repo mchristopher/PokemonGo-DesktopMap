@@ -36,6 +36,7 @@ if not os.path.isdir(platform_path):
   raise Exception(err)
 
 sys.path.append(platform_path)
+sys.path.append(os.path.join(current_path, "pylibs", "shared"))
 
 # Import compiled python libraries
 import_errors = []

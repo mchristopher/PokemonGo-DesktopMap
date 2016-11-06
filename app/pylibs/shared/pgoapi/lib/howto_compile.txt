@@ -1,0 +1,11 @@
+: https://github.com/laverdet/pcrypt-c
+Thanks a lot to @marcel
+use "make all"
+
+
+https://gist.github.com/ZeChrales/28373120d41829d8e4cd3bdc959cb275
+Thanks a lot to @Waryas
+Linux :
+	cc -fPIC -shared -o libnhash.so libnhash.c
+Windows :
+	oh plz !
