@@ -74,7 +74,7 @@ module.exports = function(grunt) {
         iconUrl: 'https://raw.githubusercontent.com/mchristopher/PokemonGo-DesktopMap/master/pokemon.ico',
         loadingGif: path.join(path.resolve(), 'installing.gif'),
         productName: 'Pokemon GO Live Map',
-        remoteReleases: 'https://github.com/mchristopher/PokemonGo-DesktopMap/releases/download/v0.3.1'
+        remoteReleases: 'https://github.com/mchristopher/PokemonGo-DesktopMap/releases/download/v0.4.0'
       }
     },
     'electron': {
