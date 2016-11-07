@@ -155,7 +155,32 @@
                         </div>
                     </div>
                 </div>
+				
+				<hr>
 
+                <h4>Webhook Options</h4>
+				<div class="row">
+                  <div class="col-xs-8 col-xs-offset-2">
+
+                  <table class="table">
+                      <thead>
+                          <th>URL</th>
+                          <th></th>
+                      </thead>
+                      <tbody align="left" id="whDisplay">
+                      </tbody>
+                  </table>
+				  <div class="col-xs-8">
+					<input id="webhook" class="form-control"
+                       type="text" placeholder="Webhook URL">
+                  </div>
+					<div class="col-xs-2">
+						<button id="webhook-add" type="button" class="btn btn-primary" onclick="addWebhook()">Add</button>
+					</div>
+
+                  </div>
+                </div>
+				
                 <br>
                 <br>
 
@@ -254,6 +279,7 @@
     var geoLat = 34.0432108;
     var geoLon = -118.2675059;
     var userAccounts = [];
+	var webhooks = [];
 
     $( document ).ready(function(){
         // Show version
@@ -293,8 +319,13 @@
         if (localStorage.getItem('user_acct')) {
             userAccounts = JSON.parse(localStorage.getItem('user_acct'));
         }
+		
+		if(localStorage.getItem('webhooks')) {
+			webhooks = JSON.parse(localStorage.getItem('webhooks'));
+		}
 
         populateUserAccounts();
+		populateWebhooks();
     });
 
     function setupValue(key, elem) {
@@ -316,6 +347,7 @@
 
     function saveState() {
         localStorage.setItem('user_acct', JSON.stringify(userAccounts));
+		localStorage.setItem('webhooks', JSON.stringify(webhooks));
     }
 
     function populateUserAccounts() {
@@ -527,7 +559,8 @@
             //fast_scan: checked('fast_scan'),
             radius: $('#radius').val(),
             maps_api_key: $('#maps_api_key').val(),
-            accounts: userAccounts
+            accounts: userAccounts,
+			webhooks: webhooks
         });
     }
 
@@ -563,6 +596,27 @@
             disabled = $("#address").val().trim().length == 0;
         }
         jQuery('#address-locate').prop("disabled", disabled);
+    }
+	
+	function addWebhook() {
+        webhooks.push($('#webhook').val());
+		$('#webhook').val('');
+        populateWebhooks();
+    }
+	
+	function populateWebhooks() {
+        var displayHtml = '';
+        webhooks.forEach(function(val, idx) {
+            displayHtml += '<tr><td>'+val+'</td>';
+            displayHtml += '<td><a href="#" onclick="deleteWebhook('+idx+')">[X]</a></td></tr>';
+        });
+        $('#whDisplay').html(displayHtml);
+        saveState();
+    }
+	
+	function deleteWebhook(idx) {
+        webhooks.splice(idx, 1);
+        populateWebhooks();
     }
 
   </script>

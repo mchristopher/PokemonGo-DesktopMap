@@ -240,6 +240,13 @@ function startPython(auth, code, lat, long, opts) {
       cmdLine.push('--password');
       cmdLine.push(val.pass);
     });
+	
+	if (opts.webhooks) {
+		opts.webhooks.forEach(function(val) {
+			cmdLine.push('--webhook');
+			cmdLine.push(val);
+		});
+	}
 
     // Add options
 
