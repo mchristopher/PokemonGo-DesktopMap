@@ -76,7 +76,7 @@ _raw_arc4_lib = load_pycryptodome_raw_lib("Cryptodome.Cipher._ARC4", """
                     """)
 
 
-class ARC4Cipher:
+class ARC4Cipher(object):
     """ARC4 cipher object"""
 
     def __init__(self, key, *args, **kwargs):

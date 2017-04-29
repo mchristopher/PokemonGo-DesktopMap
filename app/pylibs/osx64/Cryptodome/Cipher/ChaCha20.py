@@ -77,7 +77,7 @@ _raw_chacha20_lib = load_pycryptodome_raw_lib("Cryptodome.Cipher._chacha20",
                     """)
 
 
-class ChaCha20Cipher:
+class ChaCha20Cipher(object):
     """ChaCha20 cipher object"""
 
     block_size = 1
