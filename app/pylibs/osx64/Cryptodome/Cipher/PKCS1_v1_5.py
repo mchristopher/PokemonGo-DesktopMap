@@ -74,7 +74,7 @@ from Cryptodome.Util.py3compat import *
 import Cryptodome.Util.number
 from Cryptodome import Random
 
-class PKCS115_Cipher:
+class PKCS115_Cipher(object):
     """This cipher can perform PKCS#1 v1.5 RSA encryption or decryption."""
 
     def __init__(self, key, randfunc):

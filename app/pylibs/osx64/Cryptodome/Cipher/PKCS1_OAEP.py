@@ -58,7 +58,7 @@ from   Cryptodome.Util.number import ceil_div, bytes_to_long, long_to_bytes
 from   Cryptodome.Util.strxor import strxor
 from Cryptodome import Random
 
-class PKCS1OAEP_Cipher:
+class PKCS1OAEP_Cipher(object):
     """This cipher can perform PKCS#1 v1.5 OAEP encryption or decryption."""
 
     def __init__(self, key, hashAlgo, mgfunc, label, randfunc):
@@ -144,7 +144,7 @@ class PKCS1OAEP_Cipher:
         # Step 2b
         ps = bchr(0x00)*ps_len
         # Step 2c
-        db = lHash + ps + bchr(0x01) + message
+        db = lHash + ps + bchr(1 << 0) + message
         # Step 2d
         ros = self._randfunc(hLen)
         # Step 2e
@@ -215,7 +215,7 @@ class PKCS1OAEP_Cipher:
         db = strxor(maskedDB, dbMask)
         # Step 3g
         valid = 1
-        one = db[hLen:].find(bchr(0x01))
+        one = db[hLen:].find(bchr(1 << 0))
         lHash1 = db[:hLen]
         if lHash1!=lHash:
             valid = 0
